@@ -27,11 +27,11 @@ namespace blt {
     void        (*lua_pushboolean)  (lua_state*, bool);
     void        (*lua_pushcclosure) (lua_state*, lua_cfunction, int);
     void        (*lua_pushlstring)  (lua_state*, const char*, size_t);
-    void        (*luaI_openlib)     (lua_state*, const char*, const luaL_reg*, int);
+    void        (*luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
     void        (*luaL_ref)         (lua_state*, int);
     void        (*lua_rawgeti)      (lua_state*, int, int);
     void        (*luaL_unref)       (lua_state*, int, int);
-    void*       (*do_game_update)   (int*, int*);
+    void        (*do_game_update)   ();
     int         (*luaL_newstate)    (char, char, int);
 
     /*
@@ -43,9 +43,18 @@ namespace blt {
     SubHook     luaCallDetour;
     SubHook     luaCloseDetour;
 
-    void* bltGameUpdate (int*, int*);
+    void 
+    dslUpdateDetour() 
+    {
+        SubHook::ScopedRemove remove(&gameUpdateDetour);
+        fprintf(stderr, "dsl::EventManager::update() detour called\n");
 
-    void InitLUAHooks(void* dlHandle) {
+        return do_game_update();
+    }
+
+    void 
+    InitLUAHooks(void* dlHandle) 
+    {
 #       define ffunc(name) ({ void* ret = dlsym(dlHandle, name); fprintf(stderr, "%s = %p\n", name, ret); ret; })
         fprintf(stderr, "setting up lua function access\n");
 
@@ -69,7 +78,7 @@ namespace blt {
             lua_pushboolean     = ffunc("lua_pushboolean");
             lua_pushcclosure    = ffunc("lua_pushcclosure");
             lua_pushlstring     = ffunc("lua_pushlstring");
-            luaI_openlib        = ffunc("luaI_openlib");
+            luaL_openlib        = ffunc("luaL_openlib");
             luaL_ref            = ffunc("luaL_ref");
             lua_rawgeti         = ffunc("lua_rawgeti");
             luaL_unref          = ffunc("luaL_unref");
@@ -80,6 +89,7 @@ namespace blt {
         fprintf(stderr, "setting up intercepts\n");
 
         {
+            gameUpdateDetour.Install(do_game_update, dslUpdateDetour);        
         }
 
 #       define ffunc

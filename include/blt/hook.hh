@@ -51,7 +51,7 @@ namespace blt {
     extern void        (*luaL_ref)         (lua_state*, int);
     extern void        (*lua_rawgeti)      (lua_state*, int, int);
     extern void        (*luaL_unref)       (lua_state*, int, int);
-    extern void*       (*do_game_update)   (int*, int*);
+    extern void        (*do_game_update)   ();
     extern int         (*luaL_newstate)    (char, char, int);
 
     /*
