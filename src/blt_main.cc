@@ -33,7 +33,7 @@ __attribute__((constructor))
 static void
 blt_main ()
 {
-    void* dlHandle = dlopen(NULL, RTLD_NOW);
+    void* dlHandle = dlopen(NULL, RTLD_LAZY);
     fprintf(stderr, "dlHandle = %p\n", dlHandle);
 
     /*
