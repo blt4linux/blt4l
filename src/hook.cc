@@ -3,8 +3,11 @@
 #include <cstdio>
 #include <list>
 #include <dlfcn.h>
+#include <iostream>
 
 namespace blt {
+
+    using std::cerr;
 
     std::list<lua_state*> activeStates;
 
@@ -55,10 +58,10 @@ namespace blt {
     void
     InitLUAHooks(void* dlHandle)
     {
-#	define setcall(name) \
-	    ret = dlsym(dlHandle, #name); \
-	    fprintf(stderr, "%s = %p\n", #name, ret); \
-	    *(void **) (&name) = ret;
+#       define setcall(name) \
+            ret = dlsym(dlHandle, #name); \
+            cerr << #name << " = " << ret << "\n"; \
+            *(void **) (&name) = ret;
 
         fprintf(stderr, "setting up lua function access\n");
 
@@ -88,9 +91,9 @@ namespace blt {
             setcall(lua_rawgeti);
             setcall(luaL_unref);
 
-	    ret = dlsym(dlHandle, "_ZN3dsl12EventManager6updateEv");	// dsl::EventManager::update
-	    fprintf(stderr, "%s = %p\n", "_ZN3dsl12EventManager6updateEv", ret);
-	    *(void **) (&do_game_update) = ret;
+        ret = dlsym(dlHandle, "_ZN3dsl12EventManager6updateEv");    // dsl::EventManager::update
+        cerr << "_ZN3dsl12EventManager6updateEv" << " = " << ret << "\n";
+        *(void **) (&do_game_update) = ret;
 
             setcall(luaL_newstate);
         }
@@ -105,3 +108,5 @@ namespace blt {
     }
 
 }
+
+/* vim: set ts=4 softtabstop=0 sw=4 expandtab: */
