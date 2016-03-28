@@ -94,7 +94,7 @@ namespace blt {
         fprintf(stderr, "setting up intercepts\n");
 
         {
-            gameUpdateDetour.Install(do_game_update, dslUpdateDetour);
+            gameUpdateDetour.Install((void *)do_game_update, (void *)dslUpdateDetour);
         }
 
 #       undef setcall
