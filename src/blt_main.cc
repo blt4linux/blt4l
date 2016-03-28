@@ -2,7 +2,10 @@
  * (C) 2016- Roman Hargrave
  */
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
 #include <unistd.h>
 #include <stdio.h>
 #include <dlfcn.h>
