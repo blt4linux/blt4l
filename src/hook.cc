@@ -43,8 +43,8 @@ namespace blt {
     SubHook     luaCallDetour;
     SubHook     luaCloseDetour;
 
-    void 
-    dslUpdateDetour() 
+    void
+    dslUpdateDetour()
     {
         SubHook::ScopedRemove remove(&gameUpdateDetour);
         fprintf(stderr, "dsl::EventManager::update() detour called\n");
@@ -52,47 +52,52 @@ namespace blt {
         return do_game_update();
     }
 
-    void 
-    InitLUAHooks(void* dlHandle) 
+    void
+    InitLUAHooks(void* dlHandle)
     {
-#       define ffunc(name) ({ void* ret = dlsym(dlHandle, name); fprintf(stderr, "%s = %p\n", name, ret); ret; })
+#	define setcall(name) \
+	    ret = dlsym(dlHandle, #name); \
+	    fprintf(stderr, "%s = %p\n", #name, ret); \
+	    *(void **) (&name) = ret;
+
         fprintf(stderr, "setting up lua function access\n");
 
         {
-            lua_call            = ffunc("lua_call");
-            lua_pcall           = ffunc("lua_pcall");
-            lua_gettop          = ffunc("lua_gettop");
-            lua_settop          = ffunc("lua_settop");
-            lua_tolstring       = ffunc("lua_tolstring");
-            luaL_loadfile       = ffunc("luaL_loadfile");
-            lua_load            = ffunc("lua_load");
-            lua_setfield        = ffunc("lua_setfield");
-            lua_createtable     = ffunc("lua_createtable");
-            lua_insert          = ffunc("lua_insert");
-            lua_newstate        = ffunc("lua_newstate");
-            lua_close           = ffunc("lua_close");
-            lua_rawset          = ffunc("lua_rawset");
-            lua_settable        = ffunc("lua_settable");
-            lua_pushnumber      = ffunc("lua_pushnumber");
-            lua_pushinteger     = ffunc("lua_pushinteger");
-            lua_pushboolean     = ffunc("lua_pushboolean");
-            lua_pushcclosure    = ffunc("lua_pushcclosure");
-            lua_pushlstring     = ffunc("lua_pushlstring");
-            luaL_openlib        = ffunc("luaL_openlib");
-            luaL_ref            = ffunc("luaL_ref");
-            lua_rawgeti         = ffunc("lua_rawgeti");
-            luaL_unref          = ffunc("luaL_unref");
-            do_game_update      = ffunc("_ZN3dsl12EventManager6updateEv"); // dsl::EventManager::update
-            luaL_newstate       = ffunc("luaL_newstate");
+            void* ret;
+            setcall(lua_call);
+            setcall(lua_pcall);
+            setcall(lua_gettop);
+            setcall(lua_settop);
+            setcall(lua_tolstring);
+            setcall(luaL_loadfile);
+            setcall(lua_load);
+            setcall(lua_setfield);
+            setcall(lua_createtable);
+            setcall(lua_insert);
+            setcall(lua_newstate);
+            setcall(lua_close);
+            setcall(lua_rawset);
+            setcall(lua_settable);
+            setcall(lua_pushnumber);
+            setcall(lua_pushinteger);
+            setcall(lua_pushboolean);
+            setcall(lua_pushcclosure);
+            setcall(lua_pushlstring);
+            setcall(luaL_openlib);
+            setcall(luaL_ref);
+            setcall(lua_rawgeti);
+            setcall(luaL_unref);
+            setcall(do_game_update);
+            setcall(luaL_newstate);
         }
 
         fprintf(stderr, "setting up intercepts\n");
 
         {
-            gameUpdateDetour.Install(do_game_update, dslUpdateDetour);        
+            gameUpdateDetour.Install(do_game_update, dslUpdateDetour);
         }
 
-#       define ffunc
+#       undef setcall
     }
 
 }
