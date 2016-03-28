@@ -87,7 +87,11 @@ namespace blt {
             setcall(luaL_ref);
             setcall(lua_rawgeti);
             setcall(luaL_unref);
-            setcall(do_game_update);
+
+	    ret = dlsym(dlHandle, "_ZN3dsl12EventManager6updateEv");	// dsl::EventManager::update
+	    fprintf(stderr, "%s = %p\n", "_ZN3dsl12EventManager6updateEv", ret);
+	    *(void **) (&do_game_update) = ret;
+
             setcall(luaL_newstate);
         }
 
