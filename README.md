@@ -11,7 +11,14 @@ Building
 
 BLT4L uses SubHook to perform runtime code modification in order to hook the statically linked LUA runtime in PayDay 2.
 A SubHook submodule is present in the repository that has been checked out at a commit that is known to be working.
-This needs to be built and installed before building BLT4L.
+This needs to be built and installed before building BLT4L:
+
+```
+$ git submodule init
+$ git submodule update
+$ mkdir build && cd build
+$ make
+```
 
 Notes
 =====
