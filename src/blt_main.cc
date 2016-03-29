@@ -48,7 +48,9 @@ blt_main ()
     if (dlHandle && dlsym(dlHandle, "lua_call")) {
         blt::InitLUAHooks(dlHandle);
     } else if(dlHandle) {
+        cerr << "lua_call wasn't found in dlHandle, won't load!\n";
         dlclose(dlHandle);
     }
 }
 
+/* vim: set ts=4 softtabstop=0 sw=4 expandtab: */
