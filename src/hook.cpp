@@ -1,13 +1,10 @@
 #include <subhook.h>
-#include <blt/hook.hh>
+#include <blt/hook.h>
 #include <cstdio>
 #include <list>
 #include <dlfcn.h>
-#include <iostream>
 
 namespace blt {
-
-    using std::cerr;
 
     std::list<lua_state*> activeStates;
 

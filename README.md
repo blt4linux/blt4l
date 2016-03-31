@@ -17,6 +17,7 @@ This needs to be built and installed before building BLT4L:
 $ git submodule init
 $ git submodule update
 $ mkdir build && cd build
+$ cmake ..
 $ make
 ```
 
@@ -24,10 +25,10 @@ Notes
 =====
 
 I am a bit out of my element writing C++, as I prefer to use C; however, it is more convenient to use C++ when you're trying
-to call and overwrite functions in a C++ application. For this reason you may notice a few C-like things in the C++ code. 
+to call and overwrite functions in a C++ application. For this reason you may notice a few C-like things in the C++ code.
 Feel free to correct them and open a PR.
 
-Additionally, I should point out that I am using the linker to access the `lua_*` functions. This is because (as of 2016-03-22) 
+Additionally, I should point out that I am using the linker to access the `lua_*` functions. This is because (as of 2016-03-22)
 the `payday2_release` image is not stripped (or at least not fully; as is sometimes the case with staticly linked images). For this
 reason we can forego signature hunting and the like, as we have symbols and the linker, the ***ultimate*** signature system. I've
 backed up a copy of the payday image should a stripped update come out and necessitate signatures.

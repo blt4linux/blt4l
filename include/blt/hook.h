@@ -1,12 +1,18 @@
+#ifdef _WIN32
 #pragma once
+#endif
+
+#ifndef HOOK_H
+#define HOOK_H
 
 #include <cstdlib>
 #include <cstddef>
+#include <iostream>
 
 /**
  * BLT4L Linux Modding Platform for PayDay2
- * (C) 2016- Roman Hargrave 
- * 
+ * (C) 2016- Roman Hargrave
+ *
  * Unit: Hook interface declarations
  *
  * NOTE: I usually program in C, not C++
@@ -14,6 +20,8 @@
  */
 
 namespace blt {
+
+    using std::cerr;
 
     class lua_state;
     typedef const char* (*lua_reader) (lua_state*, void*, size_t*);
@@ -61,3 +69,4 @@ namespace blt {
     void InitLUAHooks(void*);
 
 }
+#endif // HOOK_H
