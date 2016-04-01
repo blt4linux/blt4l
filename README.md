@@ -21,6 +21,11 @@ $ cmake ..
 $ make
 ```
 
+Usage
+====
+- Copy libblt_loader.so to ```steamapps/common/PAYDAY 2```
+- Add to your game launch options ```LD_PRELOAD=libblt_loader.so %command%```
+
 Notes
 =====
 
