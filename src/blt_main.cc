@@ -6,12 +6,13 @@
 #define _GNU_SOURCE
 #endif
 
-#include <unistd.h>
-#include <stdio.h>
+extern "C" {
 #include <dlfcn.h>
-#include <stdbool.h>
-
+}
+#include <iostream>
 #include <blt/hook.hh>
+
+using std::cerr;
 
 /*
  * Test for a GCC-compatible compiler, because we need 
@@ -37,7 +38,7 @@ static void
 blt_main ()
 {
     void* dlHandle = dlopen(NULL, RTLD_LAZY);
-    fprintf(stderr, "dlHandle = %p\n", dlHandle);
+    cerr << "dlHandle = " << dlHandle << "\n";
 
     /*
      * Hack: test for presence of a known unique function amongst the libraries loaded by payday 

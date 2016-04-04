@@ -1,9 +1,10 @@
+extern "C" {
+#include <dlfcn.h>
+}
+#include <iostream>
 #include <subhook.h>
 #include <blt/hook.hh>
-#include <cstdio>
 #include <list>
-#include <dlfcn.h>
-#include <iostream>
 
 namespace blt {
 
@@ -11,31 +12,34 @@ namespace blt {
 
     std::list<lua_state*> activeStates;
 
-    void        (*lua_call)         (lua_state*, int, int);
-    int         (*lua_pcall)        (lua_state*, int, int, int);
-    int         (*lua_gettop)       (lua_state*);
-    void        (*lua_settop)       (lua_state*, int);
-    const char* (*lua_tolstring)    (lua_state*, int, size_t*);
-    int         (*luaL_loadfile)    (lua_state*, const char*);
-    int         (*lua_load)         (lua_state*, lua_reader*, void*, const char*);
-    void        (*lua_setfield)     (lua_state*, int, const char*);
-    void        (*lua_createtable)  (lua_state*, int, int);
-    void        (*lua_insert)       (lua_state*, int);
-    lua_state*  (*lua_newstate)     (lua_alloc, void*);
-    void        (*lua_close)        (lua_state*);
-    void        (*lua_rawset)       (lua_state*, int);
-    void        (*lua_settable)     (lua_state*, int);
-    void        (*lua_pushnumber)   (lua_state*, double);
-    void        (*lua_pushinteger)  (lua_state*, ptrdiff_t);
-    void        (*lua_pushboolean)  (lua_state*, bool);
-    void        (*lua_pushcclosure) (lua_state*, lua_cfunction, int);
-    void        (*lua_pushlstring)  (lua_state*, const char*, size_t);
-    void        (*luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
-    void        (*luaL_ref)         (lua_state*, int);
-    void        (*lua_rawgeti)      (lua_state*, int, int);
-    void        (*luaL_unref)       (lua_state*, int, int);
+extern "C" {
+    void        (*olua_call)         (lua_state*, int, int);
+    int         (*olua_pcall)        (lua_state*, int, int, int);
+    int         (*olua_gettop)       (lua_state*);
+    void        (*olua_settop)       (lua_state*, int);
+    const char* (*olua_tolstring)    (lua_state*, int, size_t*);
+    int         (*oluaL_loadfile)    (lua_state*, const char*);
+    int         (*olua_load)         (lua_state*, lua_reader*, void*, const char*);
+    void        (*olua_setfield)     (lua_state*, int, const char*);
+    void        (*olua_createtable)  (lua_state*, int, int);
+    void        (*olua_insert)       (lua_state*, int);
+    lua_state*  (*olua_newstate)     (lua_alloc, void*);
+    void        (*olua_close)        (lua_state*);
+    void        (*olua_rawset)       (lua_state*, int);
+    void        (*olua_settable)     (lua_state*, int);
+    void        (*olua_pushnumber)   (lua_state*, double);
+    void        (*olua_pushinteger)  (lua_state*, ptrdiff_t);
+    void        (*olua_pushboolean)  (lua_state*, bool);
+    void        (*olua_pushcclosure) (lua_state*, lua_cfunction, int);
+    void        (*olua_pushlstring)  (lua_state*, const char*, size_t);
+    void        (*oluaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
+    void        (*oluaL_ref)         (lua_state*, int);
+    void        (*olua_rawgeti)      (lua_state*, int, int);
+    void        (*oluaL_unref)       (lua_state*, int, int);
+    int         (*oluaL_newstate)    (char, char, int);
+
     void        (*do_game_update)   ();
-    int         (*luaL_newstate)    (char, char, int);
+}
 
     /*
      * Internal
@@ -50,7 +54,7 @@ namespace blt {
     dslUpdateDetour()
     {
         SubHook::ScopedRemove remove(&gameUpdateDetour);
-        fprintf(stderr, "dsl::EventManager::update() detour called\n");
+        cerr << "dsl::EventManager::update() detour called\n";
 
         return do_game_update();
     }
@@ -61,9 +65,9 @@ namespace blt {
 #       define setcall(name) \
             ret = dlsym(dlHandle, #name); \
             cerr << #name << " = " << ret << "\n"; \
-            *(void **) (&name) = ret;
+            *(void **) (&o ## name) = ret;
 
-        fprintf(stderr, "setting up lua function access\n");
+        cerr << "setting up lua function access\n";
 
         {
             void* ret;
@@ -98,11 +102,12 @@ namespace blt {
             setcall(luaL_newstate);
         }
 
-        fprintf(stderr, "setting up intercepts\n");
-
-        {
-            gameUpdateDetour.Install((void *)do_game_update, (void *)dslUpdateDetour);
-        }
+// TODO: fix this!
+//        cerr << "setting up intercepts\n";
+//
+//        {
+//            gameUpdateDetour.Install((void *)do_game_update, (void *)dslUpdateDetour);
+//        }
 
 #       undef setcall
     }
