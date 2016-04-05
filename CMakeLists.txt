@@ -11,6 +11,7 @@ include_directories(include subhook)
 
 set(SOURCE_FILES
     src/hook.cc
+    src/lapi.cc
     )
 
 add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cc)

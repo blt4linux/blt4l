@@ -17,14 +17,6 @@
 
 namespace blt {
 
-    class lua_state;
-    typedef const char* (*lua_reader) (lua_state*, void*, size_t*);
-    typedef int (*lua_cfunction) (lua_state*);
-    typedef void* (*lua_alloc) (void*, void*, size_t, size_t);
-    typedef struct {
-        const char* name;
-        lua_cfunction func;
-    } luaL_reg;
 
     /*
      * Forward-declarations of our hooked functions

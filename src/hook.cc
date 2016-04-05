@@ -5,6 +5,7 @@ extern "C" {
 #include <iostream>
 #include <subhook.h>
 #include <blt/hook.hh>
+#include <blt/lapi.hh>
 #include <list>
 
 namespace blt {
@@ -108,8 +109,12 @@ namespace blt {
     lua_state*
     dt_lua_newstate(lua_alloc allocator, void* data)
     {
+
         SubHook::ScopedRemove remove(&newStateDetour);
         lua_state* state = olua_newstate(allocator, data);
+#       define lua_mapfn(name, function) \
+            olua_pushcclosure(state, function, 0); \
+            olua_setfield(state, LUA_GLOBALSINDEX, name);
        
         if (!state)
         {
@@ -122,18 +127,20 @@ namespace blt {
 
         cerr << "stackSize = " << stackSize << "\n"; // iostreams suck
 
+       
         /*
-         * TODO pcall
-         * TODO dofile
-         * TODO dohttpreq
-         * TODO log
-         * TODO unzip
-         * TODO these should be confined to a subroutine to prevent polution
+         * Install BLT API-extensions in to the LUA context
          */
 
-        // TODO install BLT ext here
+        lua_mapfn("pcall",      lapi::pcall);
+        lua_mapfn("dofile",     lapi::dofile);
+        lua_mapfn("dohttpreq",  lapi::dohttpreq);
+        lua_mapfn("log",        lapi::log);
+        lua_mapfn("unzip",      lapi::unzip);
+
 
         return state;
+#       undef lua_mapfn
     }
 
     void
