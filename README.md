@@ -16,7 +16,9 @@ This needs to be built and installed before building BLT4L:
 ```
 $ git submodule init
 $ git submodule update
-$ mkdir build && cd build
+$ mkdir build 
+$ cd build
+$ cmake .. 
 $ make
 ```
 
