@@ -1,6 +1,6 @@
 extern "C" {
 #include <dlfcn.h>
-#include <stdio.h>
+//#include <stdio.h>
 }
 #include <iostream>
 #include <subhook.h>
@@ -10,6 +10,7 @@ extern "C" {
 namespace blt {
 
     using std::cerr;
+    using std::cout;
 
     extern "C" {
         void        (*olua_call)         (lua_state*, int, int);
@@ -81,7 +82,7 @@ namespace blt {
         {
             // is this a real pointer.
             // lol C++
-            if (*stateIterator == state) 
+            if (*stateIterator == state)
             {
                 return true;
             }
@@ -110,10 +111,10 @@ namespace blt {
     {
         SubHook::ScopedRemove remove(&newStateDetour);
         lua_state* state = olua_newstate(allocator, data);
-       
+
         if (!state)
         {
-            return state; // null anyways, but whatever. 
+            return state; // null anyways, but whatever.
         }
 
         add_active_state(state);
@@ -139,10 +140,10 @@ namespace blt {
     void
     InitLUAHooks(void* dlHandle)
     {
-#       define setcall(name) \
-            ret = dlsym(dlHandle, #name); \
-            cerr << #name << " = " << ret << "\n"; \
-            *(void **) (&o ## name) = ret;
+#       define setcall(symbol,ptr) \
+            ret = dlsym(dlHandle, #symbol); \
+            cerr << #symbol << " = " << ret << "\n"; \
+            *(void **) (&ptr) = ret;
 
         cerr << "setting up lua function access\n";
 
@@ -152,35 +153,33 @@ namespace blt {
 
         {
             void* ret;
-            setcall(lua_call);
-            setcall(lua_pcall);
-            setcall(lua_gettop);
-            setcall(lua_settop);
-            setcall(lua_tolstring);
-            setcall(luaL_loadfile);
-            setcall(lua_load);
-            setcall(lua_setfield);
-            setcall(lua_createtable);
-            setcall(lua_insert);
-            setcall(lua_newstate);
-            setcall(lua_close);
-            setcall(lua_rawset);
-            setcall(lua_settable);
-            setcall(lua_pushnumber);
-            setcall(lua_pushinteger);
-            setcall(lua_pushboolean);
-            setcall(lua_pushcclosure);
-            setcall(lua_pushlstring);
-            setcall(luaL_openlib);
-            setcall(luaL_ref);
-            setcall(lua_rawgeti);
-            setcall(luaL_unref);
+            setcall(lua_call, olua_call);
+            setcall(lua_pcall, olua_pcall);
+            setcall(lua_gettop, olua_gettop);
+            setcall(lua_settop, olua_settop);
+            setcall(lua_tolstring, olua_tolstring);
+            setcall(luaL_loadfile, oluaL_loadfile);
+            setcall(lua_load, olua_load);
+            setcall(lua_setfield, olua_setfield);
+            setcall(lua_createtable, olua_createtable);
+            setcall(lua_insert, olua_insert);
+            setcall(lua_newstate, olua_newstate);
+            setcall(lua_close, olua_close);
+            setcall(lua_rawset, olua_rawset);
+            setcall(lua_settable, olua_settable);
+            setcall(lua_pushnumber, olua_pushnumber);
+            setcall(lua_pushinteger, olua_pushinteger);
+            setcall(lua_pushboolean, olua_pushboolean);
+            setcall(lua_pushcclosure, olua_pushcclosure);
+            setcall(lua_pushlstring, olua_pushlstring);
+            setcall(luaL_openlib, oluaL_openlib);
+            setcall(luaL_ref, oluaL_ref);
+            setcall(lua_rawgeti, olua_rawgeti);
+            setcall(luaL_unref, oluaL_unref);
 
-            ret = dlsym(dlHandle, "_ZN3dsl12EventManager6updateEv");    // dsl::EventManager::update
-            cerr << "_ZN3dsl12EventManager6updateEv" << " = " << ret << "\n";
-            *(void **) (&do_game_update) = ret;
-            
-            setcall(luaL_newstate);
+            setcall(_ZN11Application6updateEv, do_game_update); // _ZN11Application6updateEv = Application::update()
+
+            setcall(luaL_newstate, oluaL_newstate);
 
         }
 
