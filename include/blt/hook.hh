@@ -20,38 +20,6 @@ namespace blt {
 
 
     /*
-     * Forward-declarations of our hooked functions
-     */
-
-    extern "C" {
-        void        hlua_call         (lua_state*, int, int);
-        int         hlua_pcall        (lua_state*, int, int, int);
-        int         hlua_gettop       (lua_state*);
-        void        hlua_settop       (lua_state*, int);
-        const char* hlua_tolstring    (lua_state*, int, size_t*);
-        int         hluaL_loadfile    (lua_state*, const char*);
-        int         hlua_load         (lua_state*, lua_reader*, void*, const char*);
-        void        hlua_setfield     (lua_state*, int, const char*);
-        void        hlua_createtable  (lua_state*, int, int);
-        void        hlua_insert       (lua_state*, int);
-        lua_state*  hlua_newstate     (lua_alloc, void*);
-        void        hlua_close        (lua_state*);
-        void        hlua_rawset       (lua_state*, int);
-        void        hlua_settable     (lua_state*, int);
-        void        hlua_pushnumber   (lua_state*, double);
-        void        hlua_pushinteger  (lua_state*, ptrdiff_t);
-        void        hlua_pushboolean  (lua_state*, bool);
-        void        hlua_pushcclosure (lua_state*, lua_cfunction, int);
-        void        hlua_pushlstring  (lua_state*, const char*, size_t);
-        void        hluaI_openlib     (lua_state*, const char*, const luaL_reg*, int);
-        void        hluaL_ref         (lua_state*, int);
-        void        hluaL_openlib     (lua_state*, const char*, const luaL_reg*, int);
-        void        hlua_rawgeti      (lua_state*, int, int);
-        void        hluaL_unref       (lua_state*, int, int);
-        int         hluaL_newstate    (char, char, int);
-    }
-
-    /*
      * Internal
      */
 
