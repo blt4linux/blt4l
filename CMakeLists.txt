@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.0.0)
 project(blt4l)
 
 add_subdirectory(subhook)
