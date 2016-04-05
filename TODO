@@ -1,1 +1,1 @@
-* SubHook appears to be (unsurprisingly) causing stack corruption when a redirected function in PAYDAY (but not BLT4L) is called. 
+* Implement BLT API
