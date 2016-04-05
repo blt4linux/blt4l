@@ -57,7 +57,6 @@ extern "C" {
     void        hluaL_unref       (lua_state*, int, int);
     int         hluaL_newstate    (char, char, int);
 }
-    void        dslUpdateDetour   ();
 
     /*
      * Internal
