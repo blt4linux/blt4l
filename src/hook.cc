@@ -147,10 +147,7 @@ namespace blt {
     void
     InitLUAHooks(void* dlHandle)
     {
-#       define setcall(symbol,ptr) \
-            ret = dlsym(dlHandle, #symbol); \
-            cerr << #symbol << " = " << ret << "\n"; \
-            *(void **) (&ptr) = ret;
+#       define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol); \
 
         cerr << "setting up lua function access\n";
 
@@ -159,34 +156,33 @@ namespace blt {
          */
 
         {
-            void* ret;
-            setcall(lua_call, olua_call);
-            setcall(lua_pcall, olua_pcall);
-            setcall(lua_gettop, olua_gettop);
-            setcall(lua_settop, olua_settop);
-            setcall(lua_tolstring, olua_tolstring);
-            setcall(luaL_loadfile, oluaL_loadfile);
-            setcall(lua_load, olua_load);
-            setcall(lua_setfield, olua_setfield);
-            setcall(lua_createtable, olua_createtable);
-            setcall(lua_insert, olua_insert);
-            setcall(lua_newstate, olua_newstate);
-            setcall(lua_close, olua_close);
-            setcall(lua_rawset, olua_rawset);
-            setcall(lua_settable, olua_settable);
-            setcall(lua_pushnumber, olua_pushnumber);
-            setcall(lua_pushinteger, olua_pushinteger);
-            setcall(lua_pushboolean, olua_pushboolean);
-            setcall(lua_pushcclosure, olua_pushcclosure);
-            setcall(lua_pushlstring, olua_pushlstring);
-            setcall(luaL_openlib, oluaL_openlib);
-            setcall(luaL_ref, oluaL_ref);
-            setcall(lua_rawgeti, olua_rawgeti);
-            setcall(luaL_unref, oluaL_unref);
+            setcall(lua_call,           olua_call);
+            setcall(lua_pcall,          olua_pcall);
+            setcall(lua_gettop,         olua_gettop);
+            setcall(lua_settop,         olua_settop);
+            setcall(lua_tolstring,      olua_tolstring);
+            setcall(luaL_loadfile,      oluaL_loadfile);
+            setcall(lua_load,           olua_load);
+            setcall(lua_setfield,       olua_setfield);
+            setcall(lua_createtable,    olua_createtable);
+            setcall(lua_insert,         olua_insert);
+            setcall(lua_newstate,       olua_newstate);
+            setcall(lua_close,          olua_close);
+            setcall(lua_rawset,         olua_rawset);
+            setcall(lua_settable,       olua_settable);
+            setcall(lua_pushnumber,     olua_pushnumber);
+            setcall(lua_pushinteger,    olua_pushinteger);
+            setcall(lua_pushboolean,    olua_pushboolean);
+            setcall(lua_pushcclosure,   olua_pushcclosure);
+            setcall(lua_pushlstring,    olua_pushlstring);
+            setcall(luaL_openlib,       oluaL_openlib);
+            setcall(luaL_ref,           oluaL_ref);
+            setcall(lua_rawgeti,        olua_rawgeti);
+            setcall(luaL_unref,         oluaL_unref);
+            setcall(luaL_newstate,      oluaL_newstate);
 
             setcall(_ZN11Application6updateEv, do_game_update); // _ZN11Application6updateEv = Application::update()
 
-            setcall(luaL_newstate, oluaL_newstate);
 
         }
 
