@@ -12,37 +12,35 @@ namespace blt {
     using std::cerr;
     using std::cout;
 
-    extern "C" {
-        void        (*blt_lua_call)         (lua_state*, int, int);
-        int         (*blt_lua_pcall)        (lua_state*, int, int, int);
-        int         (*blt_lua_gettop)       (lua_state*);
-        void        (*blt_lua_settop)       (lua_state*, int);
-        const char* (*blt_lua_tolstring)    (lua_state*, int, size_t*);
-        int         (*blt_luaL_loadfile)    (lua_state*, const char*);
-        int         (*blt_lua_load)         (lua_state*, lua_reader*, void*, const char*);
-        void        (*blt_lua_setfield)     (lua_state*, int, const char*);
-        void        (*blt_lua_createtable)  (lua_state*, int, int);
-        void        (*blt_lua_insert)       (lua_state*, int);
-        lua_state*  (*blt_lua_newstate)     (lua_alloc, void*);
-        void        (*blt_lua_close)        (lua_state*);
-        void        (*blt_lua_rawset)       (lua_state*, int);
-        void        (*blt_lua_settable)     (lua_state*, int);
-        void        (*blt_lua_pushnumber)   (lua_state*, double);
-        void        (*blt_lua_pushinteger)  (lua_state*, ptrdiff_t);
-        void        (*blt_lua_pushboolean)  (lua_state*, bool);
-        void        (*blt_lua_pushcclosure) (lua_state*, lua_cfunction, int);
-        void        (*blt_lua_pushlstring)  (lua_state*, const char*, size_t);
-        void        (*blt_luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
-        void        (*blt_luaL_ref)         (lua_state*, int);
-        void        (*blt_lua_rawgeti)      (lua_state*, int, int);
-        void        (*blt_luaL_unref)       (lua_state*, int, int);
-        int         (*blt_luaL_newstate)    (char, char, int);
+    void        (*lua_call)         (lua_state*, int, int);
+    int         (*lua_pcall)        (lua_state*, int, int, int);
+    int         (*lua_gettop)       (lua_state*);
+    void        (*lua_settop)       (lua_state*, int);
+    const char* (*lua_tolstring)    (lua_state*, int, size_t*);
+    int         (*luaL_loadfile)    (lua_state*, const char*);
+    int         (*lua_load)         (lua_state*, lua_reader*, void*, const char*);
+    void        (*lua_setfield)     (lua_state*, int, const char*);
+    void        (*lua_createtable)  (lua_state*, int, int);
+    void        (*lua_insert)       (lua_state*, int);
+    lua_state*  (*lua_newstate)     (lua_alloc, void*);
+    void        (*lua_close)        (lua_state*);
+    void        (*lua_rawset)       (lua_state*, int);
+    void        (*lua_settable)     (lua_state*, int);
+    void        (*lua_pushnumber)   (lua_state*, double);
+    void        (*lua_pushinteger)  (lua_state*, ptrdiff_t);
+    void        (*lua_pushboolean)  (lua_state*, bool);
+    void        (*lua_pushcclosure) (lua_state*, lua_cfunction, int);
+    void        (*lua_pushlstring)  (lua_state*, const char*, size_t);
+    void        (*luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
+    int         (*luaL_ref)         (lua_state*, int);
+    void        (*lua_rawgeti)      (lua_state*, int, int);
+    void        (*luaL_unref)       (lua_state*, int, int);
+    int         (*luaL_newstate)    (char, char, int);
 
-        /**
-         * This is one of those damn C++ functions
-         */
-        void*       (*do_game_update)   (void* /* this */);
-    }
+    /**
+     * This is one of those damn C++ functions
+     */
+    void*       (*do_game_update)   (void* /* this */);
 
     /*
      * Internal
@@ -111,10 +109,10 @@ namespace blt {
     {
 
         SubHook::ScopedRemove remove(&newStateDetour);
-        lua_state* state = blt_lua_newstate(allocator, data);
+        lua_state* state = lua_newstate(allocator, data);
 #       define lua_mapfn(name, function) \
-            blt_lua_pushcclosure(state, function, 0); \
-            blt_lua_setfield(state, LUAGlobalsIndex, name);
+            lua_pushcclosure(state, function, 0); \
+            lua_setfield(state, LUAGlobalsIndex, name);
        
         if (!state)
         {
@@ -123,7 +121,7 @@ namespace blt {
 
         add_active_state(state);
 
-        int stackSize = blt_lua_gettop(state);
+        int stackSize = lua_gettop(state);
 
         cerr << "stackSize = " << stackSize << "\n"; // iostreams suck
 
@@ -144,7 +142,7 @@ namespace blt {
     }
 
     void
-    InitLUAHooks(void* dlHandle)
+    blt_init_hooks(void* dlHandle)
     {
 #       define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol); \
 
@@ -155,30 +153,30 @@ namespace blt {
          */
 
         {
-            setcall(lua_call,           blt_lua_call);
-            setcall(lua_pcall,          blt_lua_pcall);
-            setcall(lua_gettop,         blt_lua_gettop);
-            setcall(lua_settop,         blt_lua_settop);
-            setcall(lua_tolstring,      blt_lua_tolstring);
-            setcall(luaL_loadfile,      blt_luaL_loadfile);
-            setcall(lua_load,           blt_lua_load);
-            setcall(lua_setfield,       blt_lua_setfield);
-            setcall(lua_createtable,    blt_lua_createtable);
-            setcall(lua_insert,         blt_lua_insert);
-            setcall(lua_newstate,       blt_lua_newstate);
-            setcall(lua_close,          blt_lua_close);
-            setcall(lua_rawset,         blt_lua_rawset);
-            setcall(lua_settable,       blt_lua_settable);
-            setcall(lua_pushnumber,     blt_lua_pushnumber);
-            setcall(lua_pushinteger,    blt_lua_pushinteger);
-            setcall(lua_pushboolean,    blt_lua_pushboolean);
-            setcall(lua_pushcclosure,   blt_lua_pushcclosure);
-            setcall(lua_pushlstring,    blt_lua_pushlstring);
-            setcall(luaL_openlib,       blt_luaL_openlib);
-            setcall(luaL_ref,           blt_luaL_ref);
-            setcall(lua_rawgeti,        blt_lua_rawgeti);
-            setcall(luaL_unref,         blt_luaL_unref);
-            setcall(luaL_newstate,      blt_luaL_newstate);
+            setcall(lua_call,           lua_call);
+            setcall(lua_pcall,          lua_pcall);
+            setcall(lua_gettop,         lua_gettop);
+            setcall(lua_settop,         lua_settop);
+            setcall(lua_tolstring,      lua_tolstring);
+            setcall(luaL_loadfile,      luaL_loadfile);
+            setcall(lua_load,           lua_load);
+            setcall(lua_setfield,       lua_setfield);
+            setcall(lua_createtable,    lua_createtable);
+            setcall(lua_insert,         lua_insert);
+            setcall(lua_newstate,       lua_newstate);
+            setcall(lua_close,          lua_close);
+            setcall(lua_rawset,         lua_rawset);
+            setcall(lua_settable,       lua_settable);
+            setcall(lua_pushnumber,     lua_pushnumber);
+            setcall(lua_pushinteger,    lua_pushinteger);
+            setcall(lua_pushboolean,    lua_pushboolean);
+            setcall(lua_pushcclosure,   lua_pushcclosure);
+            setcall(lua_pushlstring,    lua_pushlstring);
+            setcall(luaL_openlib,       luaL_openlib);
+            setcall(luaL_ref,           luaL_ref);
+            setcall(lua_rawgeti,        lua_rawgeti);
+            setcall(luaL_unref,         luaL_unref);
+            setcall(luaL_newstate,      luaL_newstate);
 
             setcall(_ZN11Application6updateEv, do_game_update); // _ZN11Application6updateEv = Application::update()
         }
@@ -193,7 +191,7 @@ namespace blt {
            gameUpdateDetour.Install((void *) do_game_update,    (void*) dt_Application_update);
 
            // These are proper C functions
-           newStateDetour.Install((void *) blt_lua_newstate,       (void*) dt_lua_newstate);
+           newStateDetour.Install((void *) lua_newstate,       (void*) dt_lua_newstate);
         }
 
 #       undef setcall
