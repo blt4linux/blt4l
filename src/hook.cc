@@ -131,7 +131,7 @@ namespace blt {
          */
 
         lua_mapfn("pcall",      lapi::pcall);
-        lua_mapfn("dofile",     lapi::dofile);
+        lua_mapfn("dofile",     lapi::loadfile);
         lua_mapfn("dohttpreq",  lapi::dohttpreq);
         lua_mapfn("log",        lapi::log);
         // TODO: put back if implemented

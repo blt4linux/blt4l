@@ -30,8 +30,20 @@ namespace blt {
      * LUA function implementations
      */
     namespace lapi {
+        /*
+         * LUA Meta-API 
+         */
         int pcall       (lua_state*);
-        int dofile      (lua_state*);
+        int loadfile    (lua_state*);
+
+        /*
+         * FS API
+         */
+        int getdir      (lua_state*);
+        int getfiles    (lua_state*);
+        int dir_exists  (lua_state*);
+
+
         int dohttpreq   (lua_state*);
         int log         (lua_state*);
 //        int unzip       (lua_state*);
