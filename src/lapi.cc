@@ -62,3 +62,6 @@ namespace blt {
 
     }
 }
+
+/* vim: set ts=4 softtabstop=0 sw=4 expandtab: */
+

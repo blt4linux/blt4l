@@ -51,7 +51,7 @@ namespace blt {
     void blt_init_hooks(void*);
 
 }
+#endif //_HOOK_H
 
 /* vim: set ts=4 softtabstop=0 sw=4 expandtab: */
 
-#endif //_HOOK_H
