@@ -1,5 +1,6 @@
 #include <blt/lapi.hh>
 #include <blt/hook.hh>
+#include <blt/log.hh>
 #include <string>
 #include <cstddef> // size_t
 
@@ -53,6 +54,19 @@ namespace blt {
                 // TODO logging
             }
 
+            return 0;
+        }
+
+        /*
+         * log impl
+         */
+
+        int
+        log(lua_state* state)
+        {
+            size_t len;
+            const char* str = lua_tolstring(state, 1, &len);
+            log::log(str, log::LOG_LUA);
             return 0;
         }
 
