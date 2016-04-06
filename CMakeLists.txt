@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive --std=gnu++11")
 include_directories(include subhook)
 
 set(SOURCE_FILES
+    src/fs.cc
     src/http.cc
     src/log.cc
     src/hook.cc
