@@ -140,10 +140,10 @@ namespace blt {
     void
     InitLUAHooks(void* dlHandle)
     {
-#       define setcall(symbol,ptr) \
+#       define setcall(symbol,ptr) ({ \
             ret = dlsym(dlHandle, #symbol); \
             cerr << #symbol << " = " << ret << "\n"; \
-            *(void **) (&ptr) = ret;
+            *(void**) (&ptr) = ret; });
 
         cerr << "setting up lua function access\n";
 
@@ -190,10 +190,10 @@ namespace blt {
 
         {
            // These function intercepts have a hidden pointer param for `this`
-           gameUpdateDetour.Install((void *) do_game_update,    (void*) dt_Application_update);
+           gameUpdateDetour.Install((void*) do_game_update,    (void*) dt_Application_update);
 
            // These are proper C functions
-           newStateDetour.Install((void *) olua_newstate,       (void*) dt_lua_newstate);
+           newStateDetour.Install((void*) olua_newstate,       (void*) dt_lua_newstate);
         }
 
 #       undef setcall

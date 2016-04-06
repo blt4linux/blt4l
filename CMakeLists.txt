@@ -11,8 +11,9 @@ include_directories(include subhook)
 
 set(SOURCE_FILES
     src/hook.cc
+    src/blt_main.cc
     )
 
-add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cc)
+add_library(blt_loader SHARED ${SOURCE_FILES})
 
 target_link_libraries(blt_loader subhook dl)
