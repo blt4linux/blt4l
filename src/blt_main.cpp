@@ -37,7 +37,7 @@ static void
 blt_main ()
 {
     void* dlHandle = dlopen(NULL, RTLD_LAZY);
-    Logging::Log("dlHandle = " + static_cast<std::ostringstream*>( &(std::ostringstream() << dlHandle) )->str(), Logging::LOGGING_ERROR);
+    Logging::Log("dlHandle = " + static_cast<std::ostringstream*>( &(std::ostringstream() << dlHandle) )->str(), Logging::LOGGING_LOG);
 
     /*
      * Hack: test for presence of a known unique function amongst the libraries loaded by payday

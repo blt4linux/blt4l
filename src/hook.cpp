@@ -318,6 +318,7 @@ namespace blt {
     dt_Application_update(void* parentThis)
     {
         SubHook::ScopedRemove remove(&gameUpdateDetour);
+        //Logging::Log("dt_Application_update() called", Logging::LOGGING_LOG);
 
         return do_game_update(parentThis);
     }
@@ -358,7 +359,7 @@ namespace blt {
        	oluaL_openlib(state, "file", fileLib, 0);
 
        	int result;
-       	Logging::Log("Initiating Hook");
+       	Logging::Log("Initiating Hook", Logging::LOGGING_LOG);
 
        	result = oluaL_loadfile(state, "mods/base/base.lua");
        	if (result == LUA_ERRSYNTAX){
@@ -382,7 +383,7 @@ namespace blt {
     void
     InitLUAHooks(void* dlHandle)
     {
-#       define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol);\
+#       define setcall(symbol, ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol);\
 
         Logging::Log("setting up lua function access");
 
