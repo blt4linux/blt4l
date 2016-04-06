@@ -6,12 +6,12 @@
 #define _GNU_SOURCE
 #endif
 
-#include <unistd.h>
-#include <stdio.h>
+extern "C" {
 #include <dlfcn.h>
-#include <stdbool.h>
-
+}
+#include <sstream>
 #include <blt/hook.h>
+#include <blt/logging.h>
 
 /*
  * Test for a GCC-compatible compiler, because we need
@@ -37,7 +37,7 @@ static void
 blt_main ()
 {
     void* dlHandle = dlopen(NULL, RTLD_LAZY);
-    fprintf(stderr, "dlHandle = %p\n", dlHandle);
+    Logging::Log("dlHandle = " + static_cast<std::ostringstream*>( &(std::ostringstream() << dlHandle) )->str(), Logging::LOGGING_ERROR);
 
     /*
      * Hack: test for presence of a known unique function amongst the libraries loaded by payday
@@ -48,7 +48,7 @@ blt_main ()
     if (dlHandle && dlsym(dlHandle, "lua_call")) {
         blt::InitLUAHooks(dlHandle);
     } else if(dlHandle) {
-        blt::cerr << "lua_call wasn't found in dlHandle, won't load!\n";
+        Logging::Log("lua_call wasn't found in dlHandle, won't load!", Logging::LOGGING_ERROR);
         dlclose(dlHandle);
     }
 }

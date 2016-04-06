@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.0)
 project(blt4l)
 
 add_subdirectory(subhook)
@@ -11,6 +11,8 @@ include_directories(include subhook)
 
 set(SOURCE_FILES
     src/hook.cpp
+    src/logging.cpp
+    src/files.cpp
     )
 
 add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cpp)
