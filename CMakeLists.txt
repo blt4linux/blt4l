@@ -5,15 +5,18 @@ add_subdirectory(subhook)
 
 add_definitions(-D_GNU_SOURCE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive --std=gnu++11")
 
 include_directories(include subhook)
 
 set(SOURCE_FILES
+    src/http.cc
+    src/log.cc
     src/hook.cc
     src/lapi.cc
+    src/lapi_http.cc
     )
 
 add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cc)
 
-target_link_libraries(blt_loader subhook dl)
+target_link_libraries(blt_loader subhook dl curl ssl)
