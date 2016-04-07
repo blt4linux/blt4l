@@ -117,14 +117,6 @@ namespace blt {
          * HTTP details moved to lapi_http.cc
          */
 
-        int
-        log(lua_state* state)
-        {
-            size_t len;
-            const char* str = lua_tolstring(state, 1, &len);
-            log::log(str, log::LOG_LUA);
-        }
-
     }
 }
 
