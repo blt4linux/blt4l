@@ -43,20 +43,51 @@ namespace blt {
          */
 
         static inline int
-        os_get_dir_content_impl(lua_state* state, bool listFiles)
+        os_get_dir_content_impl(lua_state* state, bool listDirs)
         {
+            vector<string> directories;
+            string path;
+            {
+                size_t len;
+                const char* cDir = lua_tolstring(state, 1, &len);
+                path = string(cDir, len);
+            }
+
+            directories = fs::list_directory(path, listDirs);
+
+            lua_createtable(state, 0, 0);
+
+            {
+                int idx = 1;
+                vector<string>::iterator it;
+                for(it = directories.begin();
+                    it < directories.end();
+                    ++it)
+                {
+                    if (*it == "." || *it == "..")
+                    {
+                        continue;
+                    }
+
+                    lua_pushinteger(state, idx);
+                    lua_pushlstring(state, it->c_str(), it->length());
+                    lua_settable(state, -3); // magic number?
+                    ++idx;
+                }
+            }
+            return 1;
         }
 
         int
         getdir(lua_state* state)
         {
-            return 1;
+            return os_get_dir_content_impl(state, true);
         }
 
         int 
         getfiles(lua_state* state)
         {
-            return 1;
+            return os_get_dir_content_impl(state, false);
         }
 
         int
