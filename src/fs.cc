@@ -3,6 +3,8 @@
 
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <cerrno>
 
 #include <string>
 #include <vector>
@@ -107,6 +109,56 @@ namespace blt {
             return true;
         }
 
+        /*
+         * delete_directory
+         */
+
+        static bool
+        fs_delete_dir(string path)
+        {
+            DIR* top = opendir(path.c_str());
+            
+            {
+                struct dirent* currentNode = NULL;
+                while (currentNode = readdir(top))
+                {
+                    if (currentNode->d_name == "." || currentNode->d_name == "..")
+                    {
+                        continue;
+                    }
+
+                    string currentPathspec = path + "/" + string(currentNode->d_name);
+
+                    switch (currentNode->d_type)
+                    {
+                        case DT_DIR:
+                            if (fs_delete_dir(currentPathspec))
+                            {
+                                rmdir(currentPathspec.c_str());
+                            }
+
+                            break;
+                        default:
+                            return remove(currentPathspec.c_str()) == 0 /* ENONE */;
+                            break;
+                    }
+
+                }
+            }       
+        }
+
+        bool
+        delete_directory(string path, bool descend)
+        {
+            if (!descend)
+            {
+                return remove(path.c_str());
+            }
+            else
+            {
+                return fs_delete_dir(path);
+            }
+        }
 
     }
 }

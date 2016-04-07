@@ -42,6 +42,7 @@ namespace blt {
         int getdir      (lua_state*);
         int getfiles    (lua_state*);
         int dir_exists  (lua_state*);
+        int removedir   (lua_state*);
 
 
         int dohttpreq   (lua_state*);

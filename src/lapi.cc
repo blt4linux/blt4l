@@ -101,6 +101,17 @@ namespace blt {
             return 1;
         }
 
+        int
+        removedir(lua_state* state)
+        {
+            size_t len;
+            const char* path = lua_tolstring(state, 1, &len);
+            string stdPath = string(path);
+
+            lua_pushboolean(state, fs::delete_directory(stdPath, false));
+            return 1;
+        }
+
         /**
          * Load a LUA file from a LUA script
          */
