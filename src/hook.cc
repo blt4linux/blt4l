@@ -49,10 +49,6 @@ namespace blt {
 
     std::list<lua_state*> activeStates;
 
-    SubHook     gameUpdateDetour;
-    SubHook     newStateDetour;
-    SubHook     luaCallDetour;
-    SubHook     luaCloseDetour;
 
     /*
      * State Management
@@ -94,6 +90,11 @@ namespace blt {
      * Detour Impl
      */
 
+    SubHook     gameUpdateDetour;
+    SubHook     newStateDetour;
+    SubHook     luaCallDetour;
+    SubHook     luaCloseDetour;
+
     void*
     dt_Application_update(void* parentThis)
     {
@@ -102,9 +103,6 @@ namespace blt {
         return do_game_update(parentThis);
     }
 
-    /*
-     * lua_newstate (and thus, luaL_newstate) intercept
-     */
     void*
     dt_dsl_lua_newstate(lua_state** pThis, bool b1, bool b2, bool allocator)
     {
@@ -140,6 +138,15 @@ namespace blt {
 
         return returnVal;
 #       undef lua_mapfn
+    }
+
+    void
+    dt_lua_close(lua_state* state)
+    {
+        SubHook::ScopedRemove remove(&luaCloseDetour);
+
+        remove_active_state(state);
+        lua_close(state);
     }
 
     void
@@ -191,11 +198,12 @@ namespace blt {
          */
 
         {
-           // These function intercepts have a hidden pointer param for `this`
-           gameUpdateDetour.Install((void *) do_game_update,    (void*) dt_Application_update);
+            // These function intercepts have a hidden pointer param for `this`
+            gameUpdateDetour.Install((void*) do_game_update,    (void*) dt_Application_update);
 
-           // These are proper C functions
-           newStateDetour.Install((void *) dsl_lua_newstate,       (void*) dt_dsl_lua_newstate);
+            // These are proper C functions
+            newStateDetour.Install((void*) dsl_lua_newstate,    (void*) dt_dsl_lua_newstate);
+            luaCloseDetour.Install((void*) lua_close,           (void*) dt_lua_close);
         }
 
 #       undef setcall
