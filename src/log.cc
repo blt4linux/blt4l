@@ -68,8 +68,10 @@ namespace blt {
                 }
             }
 
-            (*ostream) << logMessage.str() << "\n"; // lol this language i dont even
-            cerr << logMessage.str() << "\n";
+            logMessage << msg << "\n";
+
+            (*ostream) << logMessage.str(); // lol this language i dont even
+            cerr << logMessage.str();
         }
 
         void
