@@ -105,4 +105,4 @@ fi
 
 # I may eventually automate this. For now I'll ask users to paste this in to their launch options
 echo "Set the following line as your custom launch options for PAYDAY 2:"
-echo "  env LD_PRELOAD=\"$LIB_INSTALLED\" %command%"
+echo "  env LD_PRELOAD=\"\$LD_PRELOAD ./libblt_loader.so\" %command%"

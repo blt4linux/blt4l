@@ -6,6 +6,6 @@ Move the contents of this folder in to your PAYDAY 2 folder, so that it looks li
 
 Open Steam, and open the properties for PAYDAY 2. Select "Set Launch Options", and set it to:
 
-    env LD_PRELOAD="$LD_PRELOAD $HOME/.steam/steam/steamapps/common/PAYDAY 2/libblt_loader.so" %command%
+    env LD_PRELOAD="$LD_PRELOAD ./libblt_loader.so" %command%
 
 If your PAYDAY 2 folder is in a different library folder, change the path accordingly.
