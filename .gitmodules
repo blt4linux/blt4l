@@ -1,3 +1,6 @@
 [submodule "subhook"]
 	path = subhook
 	url = https://github.com/Ozymandias117/subhook.git
+[submodule "lua/blt4win"]
+	path = lua/blt4win
+	url = git://github.com/JamesWilko/Payday-2-Blt.git
