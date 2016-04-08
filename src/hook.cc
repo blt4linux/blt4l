@@ -135,7 +135,7 @@ namespace blt {
         lua_mapfn("dohttpreq",  lapi::dohttpreq);
         lua_mapfn("log",        lapi::log);
         // TODO: put back if implemented
-//        lua_mapfn("unzip",      lapi::unzip);
+       lua_mapfn("unzip",      lapi::unzip);
 
 
         return returnVal;

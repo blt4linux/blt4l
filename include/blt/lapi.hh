@@ -47,7 +47,7 @@ namespace blt {
 
         int dohttpreq   (lua_state*);
         int log         (lua_state*);
-//        int unzip       (lua_state*);
+        int unzip       (lua_state*);
     }
 
 }

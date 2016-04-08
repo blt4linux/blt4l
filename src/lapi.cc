@@ -2,6 +2,7 @@
 #include <blt/hook.hh>
 #include <blt/log.hh>
 #include <blt/fs.hh>
+#include <blt/zip.hh>
 
 #include <sys/stat.h>
 
@@ -158,6 +159,19 @@ namespace blt {
         /*
          * HTTP details moved to lapi_http.cc
          */
+
+        int
+        unzip(lua_state* state)
+        {
+            size_t len;
+            const char* arcPath = lua_tolstring(state, 1, &len);
+            const char* destPath = lua_tolstring(state, 2, &len);
+
+            zip::ZIPArchive* arc = new zip::ZIPArchive(arcPath, destPath);
+            arc->read_archive();
+            delete arc;
+            return 0;
+        }
 
     }
 }
