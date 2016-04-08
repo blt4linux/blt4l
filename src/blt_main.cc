@@ -46,7 +46,7 @@ blt_main ()
      *
      * lua_call will do just fine in this case, as it's only present in payday
      */
-    if (dlHandle && dlsym(dlHandle, "lua_call")) {
+    if (dlHandle && dlsym(dlHandle, "_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE")) {
         blt::blt_init_hooks(dlHandle);
     } else if(dlHandle) {
         cerr << "lua_call wasn't found in dlHandle, won't load!\n";
