@@ -106,8 +106,27 @@ namespace blt {
                 }
             }    
 
-            return true;
+            return true; // should check return value of mkdir()
         }
+
+        bool 
+        create_file_parent(string path)
+        {
+            string parent;
+            {
+                int finalSlash = path.find_last_of('/');
+                parent = path.substr(0, finalSlash);
+            }
+
+            if (path_is_dir(parent)) 
+            {
+                return true;
+            }
+
+            return create_directory(parent);
+        }
+
+
 
         /*
          * delete_directory

@@ -30,6 +30,8 @@ namespace blt {
     extern   void        (*lua_createtable)  (lua_state*, int, int);
     extern   void        (*lua_insert)       (lua_state*, int);
     extern   lua_state*  (*lua_newstate)     (lua_alloc, void*);
+    extern   lua_state*  (*luaL_newstate)    (void);
+    extern   void*       (*dsl_lua_newstate) (lua_state**, bool, bool, bool);
     extern   void        (*lua_close)        (lua_state*);
     extern   void        (*lua_rawset)       (lua_state*, int);
     extern   void        (*lua_settable)     (lua_state*, int);
@@ -43,8 +45,6 @@ namespace blt {
     extern   void        (*luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
     extern   void        (*lua_rawgeti)      (lua_state*, int, int);
     extern   void        (*luaL_unref)       (lua_state*, int, int);
-    extern   int         (*luaL_newstate)    (char, char, int);
-
 
     bool check_active_state(lua_state*);
 

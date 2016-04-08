@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive --std=gnu++11")
 include_directories(include subhook)
 
 set(SOURCE_FILES
+    src/zip.cc
     src/fs.cc
     src/http.cc
     src/log.cc
@@ -20,4 +21,4 @@ set(SOURCE_FILES
 
 add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cc)
 
-target_link_libraries(blt_loader subhook dl curl ssl)
+target_link_libraries(blt_loader subhook dl curl ssl z)

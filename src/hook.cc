@@ -23,6 +23,8 @@ namespace blt {
     void        (*lua_createtable)  (lua_state*, int, int);
     void        (*lua_insert)       (lua_state*, int);
     lua_state*  (*lua_newstate)     (lua_alloc, void*);
+    lua_state*  (*luaL_newstate)    (void);
+    void*       (*dsl_lua_newstate) (lua_state** /* this */, bool, bool, bool);
     void        (*lua_close)        (lua_state*);
     void        (*lua_rawset)       (lua_state*, int);
     void        (*lua_settable)     (lua_state*, int);
@@ -35,7 +37,6 @@ namespace blt {
     int         (*luaL_ref)         (lua_state*, int);
     void        (*lua_rawgeti)      (lua_state*, int, int);
     void        (*luaL_unref)       (lua_state*, int, int);
-    int         (*luaL_newstate)    (char, char, int);
 
     /**
      * This is one of those damn C++ functions
@@ -104,28 +105,27 @@ namespace blt {
     /*
      * lua_newstate (and thus, luaL_newstate) intercept
      */
-    lua_state*
-    dt_lua_newstate(lua_alloc allocator, void* data)
+    void*
+    dt_dsl_lua_newstate(lua_state** pThis, bool b1, bool b2, bool allocator)
     {
-
-        SubHook::ScopedRemove remove(&newStateDetour);
-        lua_state* state = lua_newstate(allocator, data);
 #       define lua_mapfn(name, function) \
             lua_pushcclosure(state, function, 0); \
             lua_setfield(state, LUAGlobalsIndex, name);
-       
+
+        SubHook::ScopedRemove remove(&newStateDetour);
+
+        void* returnVal = dsl_lua_newstate(pThis, b1, b2, allocator);
+        lua_state* state = *pThis; // wut
+
         if (!state)
         {
-            return state; // null anyways, but whatever.
+            return returnVal;
         }
 
         add_active_state(state);
 
         int stackSize = lua_gettop(state);
 
-        cerr << "stackSize = " << stackSize << "\n"; // iostreams suck
-
-       
         /*
          * Install BLT API-extensions in to the LUA context
          */
@@ -138,7 +138,7 @@ namespace blt {
 //        lua_mapfn("unzip",      lapi::unzip);
 
 
-        return state;
+        return returnVal;
 #       undef lua_mapfn
     }
 
@@ -179,7 +179,10 @@ namespace blt {
             setcall(luaL_unref,         luaL_unref);
             setcall(luaL_newstate,      luaL_newstate);
 
-            setcall(_ZN11Application6updateEv, do_game_update); // _ZN11Application6updateEv = Application::update()
+            // _ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE = dsl::LuaInterface::newstate(...) 
+            setcall(_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE, dsl_lua_newstate); 
+            // _ZN11Application6updateEv = Application::update()
+            setcall(_ZN11Application6updateEv, do_game_update); 
         }
 
 
@@ -192,7 +195,7 @@ namespace blt {
            gameUpdateDetour.Install((void *) do_game_update,    (void*) dt_Application_update);
 
            // These are proper C functions
-           newStateDetour.Install((void *) lua_newstate,       (void*) dt_lua_newstate);
+           newStateDetour.Install((void *) dsl_lua_newstate,       (void*) dt_dsl_lua_newstate);
         }
 
 #       undef setcall

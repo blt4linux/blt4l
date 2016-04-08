@@ -13,8 +13,9 @@ namespace blt {
         bool path_is_dir(std::string);
 
         bool create_directory(std::string);
+        
+        bool create_file_parent(std::string);
 
         bool delete_directory(std::string, bool = false);
-    
-    }
+    }    
 }
