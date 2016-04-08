@@ -124,7 +124,7 @@ namespace blt {
             const char* filename = lua_tolstring(state, 1, &length);
             int error = luaL_loadfile(state, filename);
 
-            if (error = LUAErrSyntax)
+            if (error == LUAErrSyntax)
             {
                 size_t unused;
                 log::log("LUAErrSyntax loading LUA file " + string(filename), log::LOG_ERROR);
@@ -133,7 +133,7 @@ namespace blt {
 
             error = lua_pcall(state, 0, 0, 0);
 
-            if (error = LUAErrRun)
+            if (error == LUAErrRun)
             {
                 size_t unused;
                 log::log("LUAErrRun loading LUA file " + string(filename), log::LOG_ERROR);
