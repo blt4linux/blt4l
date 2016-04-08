@@ -24,7 +24,7 @@ namespace blt {
     typedef struct {
         const char* name;
         lua_cfunction func;
-    } luaL_reg;
+    } luaL_Reg;
 
     /*
      * LUA function implementations

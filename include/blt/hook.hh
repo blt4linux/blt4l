@@ -40,9 +40,8 @@ namespace blt {
     extern   void        (*lua_pushboolean)  (lua_state*, bool);
     extern   void        (*lua_pushcclosure) (lua_state*, lua_cfunction, int);
     extern   void        (*lua_pushlstring)  (lua_state*, const char*, size_t);
-    extern   void        (*luaI_openlib)     (lua_state*, const char*, const luaL_reg*, int);
     extern   int         (*luaL_ref)         (lua_state*, int);
-    extern   void        (*luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
+    extern   void        (*luaL_openlib)     (lua_state*, const char*, const luaL_Reg*, int);
     extern   void        (*lua_rawgeti)      (lua_state*, int, int);
     extern   void        (*luaL_unref)       (lua_state*, int, int);
 

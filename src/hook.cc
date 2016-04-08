@@ -38,7 +38,7 @@ namespace blt {
     void        (*lua_pushboolean)  (lua_state*, bool);
     void        (*lua_pushcclosure) (lua_state*, lua_cfunction, int);
     void        (*lua_pushlstring)  (lua_state*, const char*, size_t);
-    void        (*luaL_openlib)     (lua_state*, const char*, const luaL_reg*, int);
+    void        (*luaL_openlib)     (lua_state*, const char*, const luaL_Reg*, int);
     int         (*luaL_ref)         (lua_state*, int);
     void        (*lua_rawgeti)      (lua_state*, int, int);
     void        (*luaL_unref)       (lua_state*, int, int);
@@ -152,6 +152,30 @@ namespace blt {
         lua_mapfn("dohttpreq",  lapi::dohttpreq);
         lua_mapfn("log",        lapi::log);
         lua_mapfn("unzip",      lapi::unzip);
+
+        /*
+         * Map native libraries
+         */
+
+        {
+            luaL_Reg consoleLib[] = {
+                { "CreateConsole",  lapi::console_noop },
+                { "DestroyConsole", lapi::console_noop },
+                { NULL, NULL }
+            };
+            luaL_openlib(state, "console", consoleLib, 0);
+
+            luaL_Reg fileLib[] = {
+                { "GetDirectories",     lapi::getdir        },
+                { "GetFiles",           lapi::getfiles      },
+                { "RemoveDirectory",    lapi::removedir     },
+                { "DirectoryExists",    lapi::dir_exists    },
+                { NULL, NULL }
+            };
+            luaL_openlib(state, "file", fileLib, 0);
+        }
+
+
 
 
         return returnVal;
