@@ -1,3 +1,4 @@
+#include <blt/event.hh>
 #include <blt/http.hh>
 #include <curl/curl.h>
 #include <openssl/crypto.h>
@@ -92,7 +93,7 @@ namespace blt {
             notification->dataCounter = dlTotal;
         }
 
-        // TODO EventQueueM::GetInstance()->AddToQueue(curl_transfer_event_cb, notify)
+        event::EventQueue::get_instance()->enqueue(curl_transfer_event_cb, notification);
         return 0;
     }
 
@@ -146,7 +147,7 @@ namespace blt {
         curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
-        // EventQueueM::GetInstance()->AddToQueue(http_complete_event_cb, item);
+        event::EventQueue::get_instance()->enqueue(http_complete_event_cb, item);
     }
 
     /*
