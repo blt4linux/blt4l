@@ -47,7 +47,8 @@ $ make
 ```
 
 You should find the hook in your build folder, named `libblt_loader.so`.
-You will need to set `LD_PRELOAD` for the PAYDAY2 process to its absolute path.
+You will need to set `LD_PRELOAD` for the PAYDAY2 process to find the
+loader.
 
 Next, you will need to copy a LUA mod base to your PAYDAY 2 folder (or whatever working directory you intend to run PAYDAY 2 in).
 There is a symlink to the BLT LUA mod base (from the BLT4WIN submodule) under `lua/mods`. 
