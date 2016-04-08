@@ -1,17 +1,33 @@
 BLT4L Readme
 ============
 
-BLT4L is an attempt to port the BLT mod loader for PayDay 2 to Linux.
-It should be compatible with lua scripts meant for BLT so long as they use platform-agnostic design (e.g. file paths).
+BLT4L is a part clean-room, part-line-by-line rewrite of BLT, the PAYDAY
+2 Better Lua injecTor, for Linux. It is compatibile with all BLT mods,
+presents the same API, and uses the same LUA base.
 
-It is in early stages and does not yet work fully.
+Installing
+==========
 
-Building
-========
+You can install BLT4L in a few different ways. 
+The quickest way is to clone this repository, and run `install.sh`.
+This will work best on Debian, or a Debian derivative, such as SteamOS, as
+it can help you install missing dependecies.
 
-BLT4L uses SubHook to perform runtime code modification in order to hook the statically linked LUA runtime in PayDay 2.
-A SubHook submodule is present in the repository that has been checked out at a commit that is known to be working.
-This needs to be built and installed before building BLT4L:
+You can also find prebuilt copies under the [releases](https://github.com/blt4linux/blt4l/releases)
+tab, or if you want to debug or modify BLT4L, you can build it manually.
+
+Building & Manual Install
+=========================
+
+In order to build BLT4L, you will need:
+
+* opensll 
+* curl4-openssl (gnutls is NOT supported)
+* zlib
+* cmake
+* a build tool chain (most distros have one preinstalled, or available in a build-essentials package)
+
+Do the following:
 
 ```
 $ git submodule init
@@ -21,6 +37,14 @@ $ cd build
 $ cmake .. 
 $ make
 ```
+
+You should find the hook in your build folder, named `libblt_loader.so`.
+You will need to set `LD_PRELOAD` for the PAYDAY2 process to its absolute path.
+
+Next, you will need to copy a LUA mod base to your PAYDAY 2 folder (or whatever working directory you intend to run PAYDAY 2 in).
+There is a symlink to the BLT LUA mod base (from the BLT4WIN submodule) under `lua/mods`. 
+
+If you set everyting up correctly, you should be up and running with the BLT mod API in PAYDAY 2.
 
 Notes
 =====
