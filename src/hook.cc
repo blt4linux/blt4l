@@ -7,6 +7,7 @@ extern "C" {
 #include <blt/http.hh>
 #include <blt/lapi.hh>
 #include <blt/log.hh>
+#include <blt/event.hh>
 #include <list>
 #include <string>
 
@@ -110,6 +111,8 @@ namespace blt {
         {
             HTTPManager::get_instance()->init_locks();
         }
+
+        event::EventQueue::get_instance()->process_events();
 
         return do_game_update(parentThis);
     }

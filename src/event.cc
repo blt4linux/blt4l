@@ -26,6 +26,8 @@ namespace blt {
          * EventQueue Implementation
          */
 
+        EventQueue* EventQueue::instance = NULL;
+
         EventQueue::EventQueue()
         {
         }
