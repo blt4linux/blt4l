@@ -11,6 +11,7 @@ Credits
 * [Roman Hargrave](https://github.com/RomanHargrave) - Initial work, code, translations from BLT4WIN
 * [Leonard König](https://github.com/LeonardKoenig) - C++ cleanup, linker work
 * [Ozymandias117](https://github.com/Ozymandias117) - Fixed subhook on 64-bit platforms
+* [James Wilkinson](https://github.com/JamesWilko) - BLT LUA (and BLT)
 
 Installing
 ==========
