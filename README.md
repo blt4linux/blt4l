@@ -5,6 +5,13 @@ BLT4L is a part clean-room, part-line-by-line rewrite of BLT, the PAYDAY
 2 Better Lua injecTor, for Linux. It is compatibile with all BLT mods,
 presents the same API, and uses the same LUA base.
 
+Credits
+=======
+
+* [Roman Hargrave](https://github.com/RomanHargrave) - Initial work, code, translations from BLT4WIN
+* [Leonard König](https://github.com/LeonardKoenig) - C++ cleanup, linker work
+* [Ozymandias117](https://github.com/Ozzymandias117) - Fixed subhook on 64-bit platforms
+
 Installing
 ==========
 
