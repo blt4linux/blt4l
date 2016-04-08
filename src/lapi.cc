@@ -173,6 +173,12 @@ namespace blt {
             return 0;
         }
 
+        int
+        console_noop(lua_state* state)
+        {
+            return 0;
+        }
+
     }
 }
 

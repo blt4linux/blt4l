@@ -33,21 +33,24 @@ namespace blt {
         /*
          * LUA Meta-API 
          */
-        int pcall       (lua_state*);
-        int loadfile    (lua_state*);
+        int pcall           (lua_state*);
+        int loadfile        (lua_state*);
 
         /*
          * FS API
          */
-        int getdir      (lua_state*);
-        int getfiles    (lua_state*);
-        int dir_exists  (lua_state*);
-        int removedir   (lua_state*);
+        int getdir          (lua_state*);
+        int getfiles        (lua_state*);
+        int dir_exists      (lua_state*);
+        int removedir       (lua_state*);
 
-
-        int dohttpreq   (lua_state*);
-        int log         (lua_state*);
-        int unzip       (lua_state*);
+        /*
+         * BLT API
+         */
+        int dohttpreq       (lua_state*);
+        int log             (lua_state*);
+        int unzip           (lua_state*);
+        int console_noop    (lua_state*);
     }
 
 }
