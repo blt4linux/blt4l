@@ -5,12 +5,17 @@ extern "C" {
 #include <subhook.h>
 #include <blt/hook.hh>
 #include <blt/lapi.hh>
+#include <blt/log.hh>
 #include <list>
+#include <string>
+
+#define hook_remove(hookName) SubHook::ScopedRemove _sh_remove_raii(&hookName)
 
 namespace blt {
 
     using std::cerr;
     using std::cout;
+    using std::string;
 
     void        (*lua_call)         (lua_state*, int, int);
     int         (*lua_pcall)        (lua_state*, int, int, int);
@@ -91,16 +96,30 @@ namespace blt {
      */
 
     SubHook     gameUpdateDetour;
-    SubHook     newStateDetour;
+    SubHook     luaNewStateDetour;
     SubHook     luaCallDetour;
     SubHook     luaCloseDetour;
 
     void*
     dt_Application_update(void* parentThis)
     {
-        SubHook::ScopedRemove remove(&gameUpdateDetour);
+        hook_remove(gameUpdateDetour);
 
         return do_game_update(parentThis);
+    }
+
+    void
+    dt_lua_call(lua_state* state, int argCount, int resultCount)
+    {
+        hook_remove(luaNewStateDetour);
+
+        int result = lua_pcall(state, argCount, resultCount, 0);
+
+        if (result != 0)
+        {
+            size_t len;
+            log::log("lua_call: error in lua_pcall: " + string(lua_tolstring(state, -1, &len)), log::LOG_ERROR);
+        }
     }
 
     void*
@@ -110,7 +129,7 @@ namespace blt {
             lua_pushcclosure(state, function, 0); \
             lua_setfield(state, LUAGlobalsIndex, name);
 
-        SubHook::ScopedRemove remove(&newStateDetour);
+        hook_remove(luaNewStateDetour);
 
         void* returnVal = dsl_lua_newstate(pThis, b1, b2, allocator);
         lua_state* state = *pThis; // wut
@@ -133,7 +152,7 @@ namespace blt {
         lua_mapfn("dohttpreq",  lapi::dohttpreq);
         lua_mapfn("log",        lapi::log);
         // TODO: put back if implemented
-       lua_mapfn("unzip",      lapi::unzip);
+        lua_mapfn("unzip",      lapi::unzip);
 
 
         return returnVal;
@@ -143,7 +162,7 @@ namespace blt {
     void
     dt_lua_close(lua_state* state)
     {
-        SubHook::ScopedRemove remove(&luaCloseDetour);
+        hook_remove(luaCloseDetour);
 
         remove_active_state(state);
         lua_close(state);
@@ -154,7 +173,7 @@ namespace blt {
     {
 #       define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol); \
 
-        cerr << "setting up lua function access\n";
+        log::log("finding lua functions", log::LOG_INFO);
 
         /*
          * DL Init
@@ -192,6 +211,7 @@ namespace blt {
             setcall(_ZN11Application6updateEv, do_game_update); 
         }
 
+        log::log("installing hooks", log::LOG_INFO);
 
         /*
          * Intercept Init
@@ -199,11 +219,12 @@ namespace blt {
 
         {
             // These function intercepts have a hidden pointer param for `this`
-            gameUpdateDetour.Install((void*) do_game_update,    (void*) dt_Application_update);
+            gameUpdateDetour.Install    ((void*) do_game_update,    (void*) dt_Application_update);
 
             // These are proper C functions
-            newStateDetour.Install((void*) dsl_lua_newstate,    (void*) dt_dsl_lua_newstate);
-            luaCloseDetour.Install((void*) lua_close,           (void*) dt_lua_close);
+            luaNewStateDetour.Install   ((void*) dsl_lua_newstate,  (void*) dt_dsl_lua_newstate);
+            luaCloseDetour.Install      ((void*) lua_close,         (void*) dt_lua_close);
+            luaCallDetour.Install       ((void*) lua_call,          (void*) dt_lua_call);
         }
 
 #       undef setcall
