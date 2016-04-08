@@ -158,6 +158,10 @@ namespace blt {
     /* constructor */
     HTTPManager::HTTPManager() 
     {
+        numLocks = 0;
+        sslLocks = NULL;
+        lockInitDone = false;
+
         curl_global_init(CURL_GLOBAL_ALL);
 
         if (instance)
@@ -188,12 +192,21 @@ namespace blt {
         }
     }
 
+
+    bool
+    HTTPManager::locks_initd()
+    {
+        return lockInitDone;
+    }
+
     void
     HTTPManager::init_locks()
     {
         numLocks = CRYPTO_num_locks();
         sslLocks = new mutex[numLocks];
         CRYPTO_set_locking_callback(lock_callback);
+
+        lockInitDone = true;
     }
 
     void
@@ -218,6 +231,11 @@ namespace blt {
     /* static */ HTTPManager*
     HTTPManager::get_instance() 
     {
+        if (!instance)
+        {
+            instance = new HTTPManager();
+        }
+
         return instance;
     }
 

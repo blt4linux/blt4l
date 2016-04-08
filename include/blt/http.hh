@@ -28,7 +28,9 @@ namespace blt {
 
             // instance
 
+            bool locks_initd();
             void init_locks();
+
             void SSL_Lock(int);
             void SSL_Unlock(int);
 
@@ -41,6 +43,7 @@ namespace blt {
             
             // instance
 
+            bool lockInitDone;
             std::mutex* sslLocks;
             int numLocks;
             std::list<std::thread*> threads;

@@ -4,6 +4,7 @@ extern "C" {
 #include <iostream>
 #include <subhook.h>
 #include <blt/hook.hh>
+#include <blt/http.hh>
 #include <blt/lapi.hh>
 #include <blt/log.hh>
 #include <list>
@@ -104,6 +105,11 @@ namespace blt {
     dt_Application_update(void* parentThis)
     {
         hook_remove(gameUpdateDetour);
+
+        if (HTTPManager::get_instance()->locks_initd() == false)
+        {
+            HTTPManager::get_instance()->init_locks();
+        }
 
         return do_game_update(parentThis);
     }
