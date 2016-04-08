@@ -143,6 +143,8 @@ namespace blt {
 
         int stackSize = lua_gettop(state);
 
+        log::log("installing BLT LUA API", log::LOG_INFO);
+
         /*
          * Install BLT API-extensions in to the LUA context
          */
@@ -176,7 +178,35 @@ namespace blt {
         }
 
 
+        log::log("Loading BLT Base");
 
+        {
+            int result;
+
+            result = luaL_loadfile(state, "mods/base/base.lua");
+            log::log("luaL_loadfile() = " + std::to_string(result), log::LOG_INFO);
+
+            if (result == LUAErrSyntax) 
+            {
+                size_t len;
+                log::log("Loading BLT Base failed (Syntax Error)", log::LOG_ERROR);
+                log::log(lua_tolstring(state, -1, &len), log::LOG_ERROR);
+                return returnVal;
+            }
+
+            result = lua_pcall(state, 0, 1, 0);
+            log::log("lua_pcall(...) = " + std::to_string(result), log::LOG_INFO);
+
+            if (result == LUAErrRun)
+            {
+                size_t len;
+                log::log("Loading BLT Base failed (Runtime Error)", log::LOG_ERROR);
+                log::log(lua_tolstring(state, -1, &len), log::LOG_ERROR);
+                return returnVal;
+            }
+        }
+
+        lua_settop(state, stackSize);
 
         return returnVal;
 #       undef lua_mapfn
