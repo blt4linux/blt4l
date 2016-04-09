@@ -4,7 +4,8 @@ PD2_APPID=218620
 
 SCR_HOME=$(dirname $(readlink -f $0))
 STEAM_BASE=$HOME/.steam/steam
-STEAM_LIBRARY=${STEAM_PREFIX:-$STEAM_BASE}
+# Set STEAM_LIBRARY to sane default *iff unset*
+${STEAM_LIBRARY:=${STEAM_PREFIX:-$STEAM_BASE}}
 
 # For source release, check that we are in the correct folder
 if [ ! -f $SCR_HOME/CMakeLists.txt ]; then
@@ -19,44 +20,94 @@ fi
 
 # Dependency check
 MISSING_PKGS=""
+# Check distribution ID
+DISTRIB_ID=$(lsb_release -si)
 
-_test_lib() {
-    #ld hack. should work on steamos/debian/ubuntu. sacrifices best compatibility for shorter solution that works for >80% of users
-    # manual install is easy, too, and anyone that has a wierd ld should be able to do this themself
-    ld -l$1 2> /dev/null
-}
-
+# Checks for package $1 to be installed; if not adds it to
+# MISSING_PKGS
+# On unknown distros it will add $1 to the MISSING_PKGS
 _test_pkg() {
-    dpkg -s $@ 2>&1 > /dev/null
+    echo "Checking for $1"
+    case $DISTRIB_ID in
+        Arch)
+            case $1 in
+                libcurl4-openssl-dev)
+                    PKGNAME=curl
+                    ;;
+                zlib1g-dev)
+                    PKGNAME=zlib
+                    ;;
+                build-essential)
+                    echo "Be sure to have base-devel installed!"
+                    PKGNAME=glibc
+                    ;;
+                cmake)
+                    PKGNAME=cmake
+                    ;;
+            esac
+            if pacman -Qk $PKGNAME 2>&1 > /dev/null; then
+                return
+            fi
+            ;;
+
+
+        Debian|Ubuntu|LinuxMint)
+            PKGNAME=$1
+            if dpkg -s $PKGNAME 2>&1 > /dev/null; then
+                return 
+            fi
+            ;;
+        *)
+            PKGNAME=$1
+            ;;
+    esac
+
+    echo "Not found."
+    MISSING_PKGS="$MISSING_PKGS $PKGNAME"
 }
 
-if ! _test_lib curl; then 
-    MISSING_PKGS="$MISSING_PKGS libcurl4-openssl-dev"
-fi
-
-if ! _test_lib z; then
-    MISSING_PKGS="$MISSING_PKGS zlib1g-dev"
-fi
-
-if ! which cmake 2>&1 > /dev/null; then
-    MISSING_PKGS="$MISSING_PKGS cmake"
-fi
-
-if which dpkg 2>&1 > /dev/null; then
-    if ! _test_pkg build-essential; then
-        MISSING_PKGS="$MISSING_PKGS build-essential"
+# Installs all packages in $MISSING_PKGS
+# On unknown distros this will just ask whether to proceed or not.
+_install_packages() {
+    if [ ! ${#MISSING_PKGS} -gt 1 ]; then
+        return
     fi
-fi
 
-if [ ${#MISSING_PKGS} -gt 1 ]; then
-    if which apt-get 2>&1 > /dev/null; then
-        echo Enter your password to install these packages: $MISSING_PKGS
-        sudo apt-get install $MISSING_PKGS
-    else
-        echo The following packages must be installed: $MISSING_PKGS
-        echo They may have a different name on your distribution
-    fi
-fi
+    echo Needing these packages: $MISSING_PKGS
+    case $DISTRIB_ID in
+        Arch)
+            sudo pacman -S $MISSING_PKGS --needed
+            ;;
+        Debian|Ubuntu|LinuxMint)
+            sudo apt-get install $MISSING_PKGS
+            ;;
+        *)
+            echo "Your distribution is unsupported but you can proceed if the packages are installed"
+            printf "Proceed? [y/N]: "
+            read yn
+            if [ ! "$yn" == "y" ]; then
+                exit
+            fi
+            ;;
+    esac
+}
+
+case $DISTRIB_ID in
+    Arch)
+        ;;
+    Debian|Ubuntu|LinuxMint)    # are these the correct DISTRIB_IDs?
+        ;;
+    *)
+        echo "[WARNING] $DISTRIB_ID is unkown to installscript!"
+        ;;
+esac
+
+_test_pkg libcurl4-openssl-dev
+_test_pkg zlib1g-dev
+_test_pkg cmake
+_test_pkg build-essential
+
+_install_packages
 
 # Build release lib
 
@@ -84,7 +135,7 @@ if [ ! -f $LIB_FILE ]; then
     exit 1
 fi
 
-# Find PAYDAY 2 
+# Find PAYDAY 2
 
 PD2_DATA="$STEAM_LIBRARY/steamapps/common/PAYDAY 2"
 LIB_INSTALLED=$PD2_DATA/libblt_loader.so
@@ -106,3 +157,5 @@ fi
 # I may eventually automate this. For now I'll ask users to paste this in to their launch options
 echo "Set the following line as your custom launch options for PAYDAY 2:"
 echo "  env LD_PRELOAD=\"\$LD_PRELOAD ./libblt_loader.so\" %command%"
+
+# vim: set ts=4 softtabstop=0 sw=4 expandtab:
