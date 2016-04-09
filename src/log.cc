@@ -38,7 +38,7 @@ namespace blt {
             if (!ostream)
             {
                 std::strftime(dateString, sizeof(dateString), "%Y_%m_%d", now);
-                string filePath = "/mods/logs/" + string(dateString) + "_log.txt";
+                string filePath = "mods/logs/" + string(dateString) + "_log.txt";
                 ostream = new ofstream();
                 ostream->open(filePath, std::ios::out | std::ios::app);
             }
@@ -73,6 +73,7 @@ namespace blt {
             logMessage << msg << "\n";
 
             (*ostream) << logMessage.str(); // lol this language i dont even
+            ostream->flush();
             cerr << logMessage.str();
         }
 
