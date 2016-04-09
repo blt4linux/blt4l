@@ -137,8 +137,13 @@ namespace blt {
             // TXRX callback
             if (item->progressCallback)
             {
-                curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION,    curl_transfer_cb);
-                curl_easy_setopt(curl, CURLOPT_XFERINFODATA,        item);
+#               if LIBCURL_VERSION_NUM >= 0x072000
+                    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION,    curl_transfer_cb);
+                    curl_easy_setopt(curl, CURLOPT_XFERINFODATA,        item);
+#               else 
+                    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,    curl_transfer_cb);
+                    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA,        item);
+#               endif
                 curl_easy_setopt(curl, CURLOPT_NOPROGRESS,          0);
             }
 
