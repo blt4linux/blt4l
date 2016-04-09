@@ -8,12 +8,6 @@ if [ ! -f $REPO_HOME/CMakeLists.txt ]; then
     echo "Can't find CMakeLists.txt, is install.sh in the correct folder?"
 fi
 
-# Update submodules if git repo
-if [ -d $REPO_HOME/.git ]; then
-    git submodule init
-    git submodule update
-fi
-
 # Dependency check
 MISSING_PKGS=""
 
