@@ -84,7 +84,11 @@ if [ ! -f $LIB_FILE ]; then
 fi
 
 _SUBSCRIPT=$(git describe --always --tag)
-STAGE_DIR=$SCR_HOME/blt4l_$_SUBSCRIPT
+if which lsb_release 2>&1 >/dev/null; then
+    _SUBSCRIPT=$_SUBSCRIPT"_"$(lsb_release -si)-$(lsb_release -sc)
+fi
+STAGE_DIR_NAME=blt4l_$_SUBSCRIPT
+STAGE_DIR=$SCR_HOME/$STAGE_DIR_NAME
 
 if [ ! -d $STAGE_DIR ]; then
     mkdir $STAGE_DIR
@@ -93,4 +97,4 @@ fi
 cp "$SCR_HOME/README_BLT4L" "$STAGE_DIR"
 cp "$LIB_FILE" "$STAGE_DIR"
 cp -r $(readlink -f "$REPO_HOME/lua/mods") "$STAGE_DIR"
-tar cfJ $SCR_HOME/blt4l_$_SUBSCRIPT.tar.xz $(realpath --relative-to=$SCR_HOME $STAGE_DIR)
+tar cfJ $SCR_HOME/blt4l_$_SUBSCRIPT.tar.xz ./$STAGE_DIR_NAME/
