@@ -5,7 +5,7 @@ add_definitions(-D_GNU_SOURCE)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive --std=gnu++11")
 
-include_directories(include)
+include_directories(include subhook)
 
 set(SOURCE_FILES
     subhook/subhook.c
