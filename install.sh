@@ -53,8 +53,8 @@ _test_pkg() {
 
         Debian|Ubuntu|LinuxMint)
             PKGNAME=$1
-            if ! dpkg -s $PKGNAME 2>&1 > /dev/null; then
-                return
+            if dpkg -s $PKGNAME 2>&1 > /dev/null; then
+                return 
             fi
             ;;
         *)
