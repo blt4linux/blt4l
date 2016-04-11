@@ -59,7 +59,7 @@ fi
 
 cd $BUILD_DIR
 
-if ! cmake $REPO_HOME/CMakeLists.txt -B$BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-march=native -mtune=native" -DCMAKE_C_FLAGS="-march=native -mtune=native"
+if ! cmake $REPO_HOME/CMakeLists.txt -B$BUILD_DIR -DCMAKE_BUILD_TYPE=Release
 then
     _cmake_status=$?
     echo "cmake failed ($_cmake_status)"
