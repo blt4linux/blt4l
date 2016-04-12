@@ -180,6 +180,7 @@ namespace blt {
                 { "GetDirectories",     lapi::getdir        },
                 { "GetFiles",           lapi::getfiles      },
                 { "RemoveDirectory",    lapi::removedir     },
+                { "CreateDirectory",    lapi::createdir     },
                 { "DirectoryExists",    lapi::dir_exists    },
                 { NULL, NULL }
             };
