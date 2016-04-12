@@ -1,6 +1,9 @@
 extern "C" {
 #include <dlfcn.h>
 }
+
+#include <cstdio> 
+
 #include <iostream>
 #include <subhook.h>
 #include <blt/hook.hh>
@@ -45,10 +48,16 @@ namespace blt {
     void        (*lua_rawgeti)      (lua_state*, int, int);
     void        (*luaL_unref)       (lua_state*, int, int);
 
+
     /**
      * This is one of those damn C++ functions
      */
     void*       (*do_game_update)   (void* /* this */);
+
+    bool        (*dsl_app_do_debug) (void* /* lua_state? */);
+    bool        (*dsl_app_prod_bld) (void* /* lua_state? */);
+    bool        (*dsl_app_editor)   (void* /* lua_state? */);
+    bool        (*dsl_app_ews_enabled)(void*);
 
     /*
      * Internal
@@ -93,6 +102,7 @@ namespace blt {
         return false;
     }
 
+
     /*
      * Detour Impl
      */
@@ -101,6 +111,12 @@ namespace blt {
     SubHook     luaNewStateDetour;
     SubHook     luaCallDetour;
     SubHook     luaCloseDetour;
+
+    SubHook     debugEnableDt;
+    SubHook     prodBuildDt;
+    SubHook     editorDt;
+    SubHook     ewsDt;
+
 
     void*
     dt_Application_update(void* parentThis)
@@ -166,7 +182,7 @@ namespace blt {
 
         /*
          * Map native libraries
-         */
+     _ZNK11Application16production_buildEv    */
 
         {
             luaL_Reg consoleLib[] = {
@@ -230,6 +246,37 @@ namespace blt {
         lua_close(state);
     }
 
+    bool
+    dt_app_debug_enabled(void* _this)
+    {
+        return true;
+    }
+
+    bool
+    dt_app_production_build(void* _this)
+    {
+        return false;
+    }
+
+    int
+    dt_lua_return_true(lua_state* state)
+    {
+        lua_pushboolean(state, true);
+        return 1;
+    }
+
+    bool
+    dt_return_true(void* _this)
+    {
+        return true;
+    }
+
+    bool
+    dt_return_false(void* _this)
+    {
+        return false;
+    }
+
     void
     blt_init_hooks(void* dlHandle)
     {
@@ -271,14 +318,21 @@ namespace blt {
             setcall(_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE, dsl_lua_newstate); 
             // _ZN11Application6updateEv = Application::update()
             setcall(_ZN11Application6updateEv, do_game_update); 
+
+            setcall(_ZNK11Application13debug_enabledEv, dsl_app_do_debug);
+            setcall(_ZNK11Application16production_buildEv, dsl_app_prod_bld);
+            setcall(_ZN11Application6editorEv, dsl_app_editor);
+            setcall(_ZNK11Application11ews_enabledEv, dsl_app_ews_enabled);
         }
 
         log::log("installing hooks", log::LOG_INFO);
 
+        // fprintf(stderr, "Application::production_build() = %i\n", dsl_app_prod_bld(NULL));
+
         /*
          * Intercept Init
          */
-
+        
         {
             // These function intercepts have a hidden pointer param for `this`
             gameUpdateDetour.Install    ((void*) do_game_update,    (void*) dt_Application_update);
@@ -287,6 +341,9 @@ namespace blt {
             luaNewStateDetour.Install   ((void*) dsl_lua_newstate,  (void*) dt_dsl_lua_newstate);
             luaCloseDetour.Install      ((void*) lua_close,         (void*) dt_lua_close);
             luaCallDetour.Install       ((void*) lua_call,          (void*) dt_lua_call);
+
+            debugEnableDt.Install       ((void*) dsl_app_do_debug,  (void*) dt_return_true);
+            prodBuildDt.Install         ((void*) dsl_app_prod_bld,  (void*) dt_return_true);  
         }
 
 #       undef setcall
