@@ -46,7 +46,10 @@ namespace blt {
 
                     next = readdir(directory);
                 }
+
+                closedir(directory);
             }
+
 
             return result;
         }
@@ -136,7 +139,8 @@ namespace blt {
         fs_delete_dir(string path)
         {
             DIR* top = opendir(path.c_str());
-            
+           
+            if (top)
             {
                 struct dirent* currentNode = NULL;
                 while (currentNode = readdir(top))
@@ -163,6 +167,8 @@ namespace blt {
                     }
 
                 }
+
+                closedir(top);
             }       
         }
 
