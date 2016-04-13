@@ -104,7 +104,7 @@ namespace blt {
                     if (!seg.empty()) // should break on this instead of continuing...
                     {
                         pathBuilder << seg + '/';
-                        mkdir(pathBuilder.str().c_str(), 0655);
+                        mkdir(pathBuilder.str().c_str(), 0755);
                     }
                 }
             }    
