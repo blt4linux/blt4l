@@ -80,6 +80,15 @@ namespace blt {
         }
 
         int
+        createdir(lua_state* state)
+        {
+            size_t _unused;
+            const char* directory = lua_tolstring(state, 1, &_unused);
+            lua_pushboolean(state, fs::create_directory(directory));
+            return 1;
+        }
+
+        int
         getdir(lua_state* state)
         {
             return os_get_dir_content_impl(state, true);
@@ -112,6 +121,10 @@ namespace blt {
             lua_pushboolean(state, fs::delete_directory(stdPath, false));
             return 1;
         }
+
+        /*
+         * LUA Meta-API
+         */
 
         /**
          * Load a LUA file from a LUA script

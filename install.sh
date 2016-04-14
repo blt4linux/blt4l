@@ -29,7 +29,7 @@ DISTRIB_ID=$(lsb_release -si)
 _test_pkg() {
     echo "Checking for $1"
     case $DISTRIB_ID in
-        Arch)
+        Arch|ManjaroLinux)
             case $1 in
                 libcurl4-openssl-dev)
                     PKGNAME=curl
@@ -54,7 +54,7 @@ _test_pkg() {
         Debian|Ubuntu|LinuxMint)
             PKGNAME=$1
             if dpkg -s $PKGNAME 2>&1 > /dev/null; then
-                return 
+                return
             fi
             ;;
         *)
@@ -75,7 +75,7 @@ _install_packages() {
 
     echo Needing these packages: $MISSING_PKGS
     case $DISTRIB_ID in
-        Arch)
+        Arch|ManjaroLinux)
             sudo pacman -S $MISSING_PKGS --needed
             ;;
         Debian|Ubuntu|LinuxMint)
@@ -93,7 +93,7 @@ _install_packages() {
 }
 
 case $DISTRIB_ID in
-    Arch)
+    Arch|ManjaroLinux)
         ;;
     Debian|Ubuntu|LinuxMint)    # are these the correct DISTRIB_IDs?
         ;;

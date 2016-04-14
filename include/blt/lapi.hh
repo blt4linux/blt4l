@@ -43,6 +43,7 @@ namespace blt {
         int getfiles        (lua_state*);
         int dir_exists      (lua_state*);
         int removedir       (lua_state*);
+        int createdir       (lua_state*);
 
         /*
          * BLT API
