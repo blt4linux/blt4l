@@ -26,6 +26,34 @@ namespace blt {
         {
             LUAHttpData* httpData = (LUAHttpData*) data;
 
+            // Ensure the Lua state is still valid before sending the http data
+            if (check_active_state(httpData->state))
+            {
+                lua_rawgeti(httpData->state, LUARegistryIndex, httpData->funcRef);
+                lua_pushlstring(httpData->state, contents.c_str(), contents.length());
+                lua_pushinteger(httpData->state, httpData->reqIdent);
+                lua_pcall(httpData->state, 2, 0, 0);
+                luaL_unref(httpData->state, LUARegistryIndex, httpData->funcRef);
+                luaL_unref(httpData->state, LUARegistryIndex, httpData->progressRef);
+            }
+
+            delete httpData;
+        }
+
+        static void
+        http_progress_cb(void* data, long progress, long total)
+        {
+            LUAHttpData* httpData = (LUAHttpData*) data;
+
+            // Ensure the Lua state is still valid before sending the http data
+            if (check_active_state(httpData->state))
+            {
+                lua_rawgeti(httpData->state, LUARegistryIndex, httpData->progressRef);
+                lua_pushinteger(httpData->state, httpData->reqIdent);
+                lua_pushinteger(httpData->state, progress);
+                lua_pushinteger(httpData->state, total);
+                lua_pcall(httpData->state, 3, 0, 0);
+            }
         }
 
         int
@@ -55,7 +83,7 @@ namespace blt {
                 httpData->funcRef = functionRef;
                 httpData->progressRef = progressRef;
                 httpData->state = state;
-                httpData->reqIdent = HTTPRequestIdent++;
+                httpData->reqIdent = ++HTTPRequestIdent;
             }
 
 
@@ -64,6 +92,11 @@ namespace blt {
                 reqItem->callback   = http_completion_cb;
                 reqItem->data       = httpData;
                 reqItem->url        = url;
+
+                if (progressRef != 0)
+                {
+                    reqItem->progressCallback = http_progress_cb;
+                }
             }
 
             HTTPManager::get_instance()->launch_request(reqItem);
