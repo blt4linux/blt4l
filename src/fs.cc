@@ -16,6 +16,7 @@ namespace blt {
     namespace fs {
 
         using std::string;
+        using std::to_string;
         using std::stringstream;
         using std::vector;
         using std::ifstream;
@@ -29,7 +30,6 @@ namespace blt {
             vector<string> result;
             
             DIR* directory = opendir(path.c_str());
-            log::log("open dir: " + path, log::LOG_INFO);
 
             if (directory)
             {
@@ -80,7 +80,7 @@ namespace blt {
         {
             struct stat fileInfo;
             
-            if (stat(path.c_str(), &fileInfo))
+            if (stat(path.c_str(), &fileInfo) == 0)
             {
                 return S_ISDIR(fileInfo.st_mode);
             }
@@ -120,6 +120,7 @@ namespace blt {
                 int finalSlash = path.find_last_of('/');
                 parent = path.substr(0, finalSlash);
             }
+
 
             if (path_is_dir(parent)) 
             {
