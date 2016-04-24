@@ -53,8 +53,9 @@ namespace blt {
 
         ZIPArchive::ZIPArchive(string path, string extractPath) 
             : mainStream(path)
+            , files()
+            , extractTo(extractPath)
         {
-            extractTo = extractPath;
         }
 
         ZIPArchive::~ZIPArchive()
@@ -85,32 +86,38 @@ namespace blt {
         bool
         ZIPArchive::read_file()
         {
-            int fileHeader = mainStream.read_typed<int>();
+            // Format followed from: https://en.wikipedia.org/wiki/Zip_(file_format)#File_headers
+
+            int fileHeader = mainStream.read_typed<int32_t>();
 
             if (fileHeader != 0x04034B50)
             {
                 return false;
             }
 
-            mainStream.read_typed<short>(); // GPBF
+            mainStream.read_typed<int16_t>(); // minimum version
+            mainStream.read_typed<int16_t>(); // GPBF
 
-            int compressionMethod = mainStream.read_typed<short>();
+            int compressionMethod = mainStream.read_typed<int16_t>();
 
-            mainStream.read_typed<short>(); // mtimes
+            mainStream.read_typed<int16_t>(); // mtime
+            mainStream.read_typed<int16_t>(); // mdate
 
-            int crc32 = mainStream.read_typed<int>();
+            int crc32 = mainStream.read_typed<int32_t>();
 
             ZIPFileData* newFile = new ZIPFileData();
             {
-                newFile->compressedSize   = mainStream.read_typed<int>();
-                newFile->uncompressedSize = mainStream.read_typed<int>();
+                newFile->compressedSize   = mainStream.read_typed<int32_t>();
+                newFile->uncompressedSize = mainStream.read_typed<int32_t>();
             }
 
-            int fileNameLen     = mainStream.read_typed<short>();
-            int extraFieldLen   = mainStream.read_typed<short>();
+            int fileNameLen     = mainStream.read_typed<int16_t>();
+            int extraFieldLen   = mainStream.read_typed<int16_t>();
 
             newFile->filePath = mainStream.read_string(fileNameLen);
             string exraField = mainStream.read_string(extraFieldLen);
+
+            newFile->compressedData = mainStream.read_string(newFile->compressedSize);
 
             switch (compressionMethod)
             {
