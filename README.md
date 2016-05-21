@@ -29,7 +29,7 @@ Building & Manual Install
 
 In order to build BLT4L, you will need:
 
-* opensll 
+* openssl 
 * curl4-openssl (gnutls is NOT supported)
 * zlib
 * cmake
