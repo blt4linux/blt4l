@@ -12,6 +12,9 @@
 #include <sstream>
 #include <streambuf>
 
+// PATH_MAX
+#include <limits.h>
+
 namespace blt {
     namespace fs {
 
@@ -27,9 +30,11 @@ namespace blt {
         vector<string>
         list_directory(string path, bool listDirs)
         {
+
             vector<string> result;
             
             DIR* directory = opendir(path.c_str());
+
 
             if (directory)
             {
@@ -37,7 +42,24 @@ namespace blt {
 
                 while (next)
                 {
-                    bool isDir = (next->d_type == DT_DIR);
+                    bool isDir;
+                    {
+                        if(next->d_type == DT_LNK)
+                        {
+                            char current_path[PATH_MAX + 1];
+                            snprintf(current_path, PATH_MAX, "%s/%s", path.c_str(), next->d_name);
+
+                            // this assumes that stat will dereference N-deep symlinks rather than single symlinks
+                            struct stat estat;
+                            stat(current_path, &estat);
+
+                            isDir = S_ISDIR(estat.st_mode);
+                        }
+                        else 
+                        {
+                            isDir = (next->d_type == DT_DIR);
+                        }
+                    }
 
                     if ((listDirs && isDir) || (!listDirs && !isDir))
                     {
