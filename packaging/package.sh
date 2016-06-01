@@ -88,6 +88,7 @@ if [ ! -d $STAGE_DIR ]; then
     mkdir $STAGE_DIR
 fi
 
+cp "$REPO_HOME/LICENSE" "$STAGE_DIR/BLT4L_LICENSE"
 cp "$SCR_HOME/README_BLT4L" "$STAGE_DIR"
 cp "$LIB_FILE" "$STAGE_DIR"
 cp -r $(readlink -f "$REPO_HOME/lua/mods") "$STAGE_DIR"
