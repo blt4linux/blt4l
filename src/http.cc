@@ -1,5 +1,7 @@
 #include <blt/event.hh>
 #include <blt/http.hh>
+#include <blt/log.hh>
+
 #include <curl/curl.h>
 #include <openssl/crypto.h>
 #include <cstddef>
@@ -149,7 +151,15 @@ namespace blt {
 
         }
 
-        curl_easy_perform(curl);
+        CURLcode const cURLState = curl_easy_perform(curl);
+        switch (cURLState)
+        {
+            case CURLE_OK:
+                break;
+            default:
+                log::log("Other cURL error code raised: " + string(curl_easy_strerror(cURLState)), log::LOG_ERROR);
+                break;
+        }
         curl_easy_cleanup(curl);
 
         event::EventQueue::get_instance()->enqueue(http_complete_event_cb, item);
