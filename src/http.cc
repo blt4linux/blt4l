@@ -130,7 +130,7 @@ namespace blt {
             curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION,  1L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER,  0L);
             curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST,  0L);
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT,         60);
+            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT,  20);
 
             // Write callback
             curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,   write_http_data);
