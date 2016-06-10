@@ -76,11 +76,7 @@ namespace blt {
     {
         HTTPItem* item = (HTTPItem*) data;
 
-        if (!item->progressCallback
-            || dlTotal == dlNow 
-            || dlTotal == 0 
-            || dlNow == 0 
-            || item->dataCounter >= dlNow)
+        if (!item->progressCallback)
         {
             return 0;
         }
@@ -139,6 +135,7 @@ namespace blt {
             // TXRX callback
             if (item->progressCallback)
             {
+                    curl_easy_setopt(curl, CURLOPT_NOPROGRESS,          0);
 #               if LIBCURL_VERSION_NUM >= 0x072000
                     curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION,    curl_transfer_cb);
                     curl_easy_setopt(curl, CURLOPT_XFERINFODATA,        item);
@@ -146,7 +143,6 @@ namespace blt {
                     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION,    curl_transfer_cb);
                     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA,        item);
 #               endif
-                curl_easy_setopt(curl, CURLOPT_NOPROGRESS,          0);
             }
 
         }
