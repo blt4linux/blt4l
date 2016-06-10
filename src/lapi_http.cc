@@ -1,6 +1,8 @@
 #include <blt/lapi.hh>
 #include <blt/hook.hh>
 #include <blt/http.hh>
+#include <blt/log.hh>
+
 #include <cstddef> // size_t
 #include <string>
 
@@ -99,6 +101,7 @@ namespace blt {
                 }
             }
 
+            log::log(string("Launching HTTP GET (dest: " + url + ")"), log::LOG_LUA);
             HTTPManager::get_instance()->launch_request(reqItem);
             lua_pushinteger(state, HTTPRequestIdent);
             return 1;
