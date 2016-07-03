@@ -27,7 +27,7 @@ tab, or if you want to debug or modify BLT4L, you can build it manually.
 Building & Manual Install
 =========================
 
-In order to build BLT4L, you will need:
+##### In order to build BLT4L, you will need:
 
 * openssl 
 * curl4-openssl (gnutls is NOT supported)
@@ -35,7 +35,7 @@ In order to build BLT4L, you will need:
 * cmake
 * a build tool chain (most distros have one preinstalled, or available in a build-essentials package)
 
-Do the following:
+##### Do the following:
 
 ```
 $ git submodule init
@@ -54,6 +54,17 @@ Next, you will need to copy a LUA mod base to your PAYDAY 2 folder (or whatever 
 There is a symlink to the BLT LUA mod base (from the BLT4WIN submodule) under `lua/mods`. 
 
 If you set everyting up correctly, you should be up and running with the BLT mod API in PAYDAY 2.
+
+##### Additional work for SELinux users (e.g. Fedora users):
+
+Because our hook writes to executable sections of payday2, SELinux doesn't like us (and it shouldn't).
+In order to add an SELinux exception for the BLT Hook, you must do the following:
+
+Run Payday2 with libblt_loader.so (It will crash, and SELinux will log the error)
+```
+$ sudo ausearch -c 'payday2_release' --raw | audit2allow -M my-payday2-hook
+$ sudo semodule -i my-payday-hook.pp
+```
 
 Notes
 =====
