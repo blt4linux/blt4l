@@ -137,7 +137,10 @@ fi
 
 # Find PAYDAY 2
 
-PD2_DATA="$STEAM_LIBRARY/steamapps/common/PAYDAY 2"
+# Some steamapps folders are lowercase, some are PascalCase
+STEAMAPPS=$(find $STEAM_LIBRARY/ -maxdepth 1 -type d -iname steamapps)
+
+PD2_DATA="$STEAMAPPS/common/PAYDAY 2"
 LIB_INSTALLED=$PD2_DATA/libblt_loader.so
 
 if [ ! -d "$PD2_DATA" ]; then
