@@ -21,6 +21,11 @@ The quickest way is to clone this repository, and run `install.sh`.
 This will work best on Debian, or a Debian derivative, such as SteamOS, as
 it can help you install missing dependecies.
 
+If you're on Arch Linux (or a derivative like Manjaro), you can install the AUR package 
+[blt4l-runtime-bin](https://aur.archlinux.org/packages/blt4l-runtime-bin/) (Steam runtime) or
+[blt4l](https://aur.archlinux.org/packages/blt4l/) (non-Steam runtime/steam native). 
+You'll still need to install the base Lua manually, see the instructions below for a manual install.
+
 You can also find prebuilt copies under the [releases](https://github.com/blt4linux/blt4l/releases)
 tab, or if you want to debug or modify BLT4L, you can build it manually.
 
