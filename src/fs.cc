@@ -44,7 +44,7 @@ namespace blt {
                 {
                     bool isDir;
                     {
-                        if(next->d_type == DT_LNK)
+                        if(next->d_type == DT_LNK || next->d_type == DT_UNKNOWN)
                         {
                             char current_path[PATH_MAX + 1];
                             snprintf(current_path, PATH_MAX, "%s/%s", path.c_str(), next->d_name);
