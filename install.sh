@@ -2,10 +2,10 @@
 
 PD2_APPID=218620
 
-SCR_HOME=$(dirname $(readlink -f $0))
+SCR_HOME=$(dirname "$(readlink -f $0)")
 STEAM_BASE=$HOME/.steam/steam
 # Set STEAM_LIBRARY to sane default *iff unset*
-${STEAM_LIBRARY:=${STEAM_PREFIX:-$STEAM_BASE}}
+${STEAM_LIBRARY:=${STEAM_PREFIX:-$STEAM_BASE}} 2>/dev/null
 
 # For source release, check that we are in the correct folder
 if [ ! -f $SCR_HOME/CMakeLists.txt ]; then
@@ -137,7 +137,8 @@ fi
 
 # Find PAYDAY 2
 
-PD2_DATA="$STEAM_LIBRARY/steamapps/common/PAYDAY 2"
+echo "Looking for payday2_release... this could take a moment"
+PD2_DATA=$(dirname "$(find $STEAM_LIBRARY -maxdepth 4 -type f -name payday2_release)")
 LIB_INSTALLED=$PD2_DATA/libblt_loader.so
 
 if [ ! -d "$PD2_DATA" ]; then
