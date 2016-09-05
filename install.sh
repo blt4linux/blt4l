@@ -155,8 +155,14 @@ if [ ! -d "$PD2_DATA/mods" ]; then
     cp -r $(readlink -f "$SCR_HOME/lua/mods") "$PD2_DATA"
 fi
 
-# I may eventually automate this. For now I'll ask users to paste this in to their launch options
-echo "Set the following line as your custom launch options for PAYDAY 2:"
-echo "  env LD_PRELOAD=\"\$LD_PRELOAD ./libblt_loader.so\" %command%"
+# Check for python 2.7
+if which python2.7 >/dev/null 2>/dev/null; then
+    # Find localconfig VDFs and set launch options
+    find $STEAM_BASE/userdata -type f -name localconfig.vdf | xargs -n1 $SCR_HOME/installer/enable_blt_wrapper.py
+    echo "Launch parameters for PAYDAY 2 on all your Steam Profiles have been set to load BLT"
+else
+    echo "Set the following line as your custom launch options for PAYDAY 2:"
+    echo "  env LD_PRELOAD=\"\$LD_PRELOAD ./libblt_loader.so\" %command%"
+fi
 
 # vim: set ts=4 softtabstop=0 sw=4 expandtab:
