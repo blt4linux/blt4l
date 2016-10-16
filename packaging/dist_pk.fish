@@ -13,7 +13,7 @@
 require logging
 
 set scr_dir (dirname (status -f))
-set scm     (git remote get-url origin)
+set scm     'git://github.com/blt4linux/blt4l.git'
 
 info packaging!
 
@@ -41,20 +41,24 @@ function chr_bld -a chroot_name
     end
     
     info checking out blt4l
-
-    if      schroot --directory $chroot_home -c $chroot_name -- git clone --recursive $scm $pkbase
-        and chdo git checkout (chdo git tag | sort -V | tail -1)
-    else 
-        error "Failed to clone & checkout blt4linux"
+    begin
+        if schroot --directory $chroot_home -c $chroot_name -- git clone --recursive $scm $pkbase
+            if chdo git checkout (chdo git tag | sort -V | tail -1)
+                # Run build
+                if schroot --directory $pkbase/packaging -c $chroot_name ./package.sh
+                    # Move artifacts out of chroot
+                    mv $pkdir/*.tar.xz $scr_dir/ ^/dev/null
+                else 
+                    error build in $chroot_name failed
+                end
+            else 
+                error "Failed to checkout blt4linux"
+            end
+        else 
+            error "Failed to clone blt4linux"
+        end
     end
     
-    # Run build
-    if schroot --directory $pkbase/packaging -c $chroot_name ./package.sh
-        # Move artifacts out of chroot
-        mv $pkdir/*.tar.xz $scr_dir/ ^/dev/null
-    else 
-        error build in $chroot_name failed
-    end
 end
 
 cd $scr_dir
