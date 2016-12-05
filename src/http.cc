@@ -17,8 +17,6 @@ namespace blt {
     using std::thread;
     using std::mutex;
 
-    static list<thread*> threadList;
-
     struct HTTPProgressNotification
     {
         HTTPItem*   item;
@@ -236,7 +234,8 @@ namespace blt {
     void
     HTTPManager::launch_request(HTTPItem* xfData)
     {
-        threadList.push_back(new thread(launch_http_thread, xfData));
+        std::thread local_thread(launch_http_thread, xfData);
+        local_thread.detach();
     }
 
 
