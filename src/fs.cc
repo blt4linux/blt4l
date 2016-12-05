@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <cerrno>
+#include <ftw.h>
 
 #include <string>
 #include <vector>
@@ -157,42 +158,10 @@ namespace blt {
         /*
          * delete_directory
          */
-
-        static bool
-        fs_delete_dir(string path)
+		int
+        fs_delete_dir(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
         {
-            DIR* top = opendir(path.c_str());
-           
-            if (top)
-            {
-                struct dirent* currentNode = NULL;
-                while (currentNode = readdir(top))
-                {
-                    if (currentNode->d_name == "." || currentNode->d_name == "..")
-                    {
-                        continue;
-                    }
-
-                    string currentPathspec = path + "/" + string(currentNode->d_name);
-
-                    switch (currentNode->d_type)
-                    {
-                        case DT_DIR:
-                            if (fs_delete_dir(currentPathspec))
-                            {
-                                rmdir(currentPathspec.c_str());
-                            }
-
-                            break;
-                        default:
-                            return remove(currentPathspec.c_str()) == 0 /* ENONE */;
-                            break;
-                    }
-
-                }
-
-                closedir(top);
-            }       
+            return remove( fpath );
         }
 
         bool
@@ -204,7 +173,7 @@ namespace blt {
             }
             else
             {
-                return fs_delete_dir(path);
+                return nftw(path.c_str(), fs_delete_dir, /* max open fd's */ 128, FTW_DEPTH | FTW_PHYS);
             }
         }
 
