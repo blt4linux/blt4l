@@ -65,6 +65,8 @@ class keyvalues:
                             char = "\n"
                         elif char == "r":
                             char = "\r"
+                        elif char == " ":
+                            char = " "
                         else:
                             raise Exception("Invalid Escape Character \"{}\" at line {}".format(char, line))
                     resultstring += char
