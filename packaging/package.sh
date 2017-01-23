@@ -2,6 +2,7 @@
 
 SCR_HOME=$(dirname $(readlink -f $0))
 REPO_HOME=$(realpath $SCR_HOME/..)
+PKG_HOME=$REPO_HOME/packaging # in case SCR_HOME differs
 
 # For source release, check that we are in the correct folder
 if [ ! -f $REPO_HOME/CMakeLists.txt ]; then
@@ -88,8 +89,17 @@ if [ ! -d $STAGE_DIR ]; then
     mkdir $STAGE_DIR
 fi
 
-cp "$REPO_HOME/LICENSE" "$STAGE_DIR/BLT4L_LICENSE"
-cp "$SCR_HOME/README_BLT4L" "$STAGE_DIR"
-cp "$LIB_FILE" "$STAGE_DIR"
+# Copy artifacts
+cp "$REPO_HOME/LICENSE"         "$STAGE_DIR/BLT4L_LICENSE"
+cp "$SCR_HOME/README_BLT4L"     "$STAGE_DIR"
+cp "$LIB_FILE"                  "$STAGE_DIR"
 cp -r $(readlink -f "$REPO_HOME/lua/mods") "$STAGE_DIR"
+
+# Copy package installer
+cp "$PKG_HOME/dist_install.sh"  "$STAGE_DIR/install.sh"
+
+if [ ! -d "$STAGE_DIR/.installer" ]; then
+    cp -r "$REPO_HOME/installer"    "$STAGE_DIR/.installer"
+fi
+
 tar cfJ $SCR_HOME/blt4l_$_SUBSCRIPT.tar.xz ./$STAGE_DIR_NAME/
