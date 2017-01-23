@@ -24,7 +24,7 @@ function chr_bld -a chroot_name
     set pkbase      $chroot_home/blt4l/
     set pkdir       /var/chroots/$chroot_name/$pkbase/packaging
 
-    function -S chdo
+    function chdo -S
         info "($chroot_name) $argv"
         schroot --directory $pkbase -c $chroot_name -- $argv
     end
