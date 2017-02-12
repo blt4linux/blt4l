@@ -1,168 +1,112 @@
 #!/bin/bash
 
-PD2_APPID=218620
-
 SCR_HOME=$(dirname "$(readlink -f $0)")
-STEAM_BASE=$HOME/.steam/steam
-# Set STEAM_LIBRARY to sane default *iff unset*
-${STEAM_LIBRARY:=${STEAM_PREFIX:-$STEAM_BASE}} 2>/dev/null
+source $SCR_HOME/installer/framework.sh
 
-# For source release, check that we are in the correct folder
-if [ ! -f $SCR_HOME/CMakeLists.txt ]; then
-    echo "Can't find CMakeLists.txt, is install.sh in the correct folder?"
-fi
+STEAM_BASE=${STEAM_BASE:-$HOME/.steam/steam}
+# Set STEAM_LIBRARY to sane default *if unset*
+STEAM_LIBRARY=${STEAM_LIBRARY:-$STEAM_BASE}
 
-# Update submodules if git repo
-if [ -d $SCR_HOME/.git ]; then
-    git submodule init
-    git submodule update
-fi
+###############################################################################
+# Pre-Install
+# - Check Source Tree
+# - Check System Packages
+# - Check Steam
+###############################################################################
 
-# Dependency check
-MISSING_PKGS=""
-# Check distribution ID
-DISTRIB_ID=$(lsb_release -si)
+## Update submodules if git repo
 
-# Checks for package $1 to be installed; if not adds it to
-# MISSING_PKGS
-# On unknown distros it will add $1 to the MISSING_PKGS
-_test_pkg() {
-    echo "Checking for $1"
-    case $DISTRIB_ID in
-        Arch|ManjaroLinux)
-            case $1 in
-                libcurl4-openssl-dev)
-                    PKGNAME=curl
-                    ;;
-                zlib1g-dev)
-                    PKGNAME=zlib
-                    ;;
-                build-essential)
-                    echo "Be sure to have base-devel installed!"
-                    PKGNAME=glibc
-                    ;;
-                cmake)
-                    PKGNAME=cmake
-                    ;;
-            esac
-            if pacman -Qk $PKGNAME 2>&1 > /dev/null; then
-                return
-            fi
-            ;;
-
-
-        Debian|Ubuntu|LinuxMint)
-            PKGNAME=$1
-            if dpkg -s $PKGNAME 2>&1 > /dev/null; then
-                return
-            fi
-            ;;
-        *)
-            PKGNAME=$1
-            ;;
-    esac
-
-    echo "Not found."
-    MISSING_PKGS="$MISSING_PKGS $PKGNAME"
-}
-
-# Installs all packages in $MISSING_PKGS
-# On unknown distros this will just ask whether to proceed or not.
-_install_packages() {
-    if [ ! ${#MISSING_PKGS} -gt 1 ]; then
-        return
+if git rev-parse --git-dir >/dev/null 2>&1; then
+    logf "Updating submodules: "
+    if git submodule update --init --recursive >/dev/null 2>&1; then
+        log $_c_success"OK"$_c_normal
+    else
+        log $_c_fail"Failed (git: $?)"$_c_normal
+        exit
     fi
+fi
 
-    echo Needing these packages: $MISSING_PKGS
-    case $DISTRIB_ID in
-        Arch|ManjaroLinux)
-            sudo pacman -S $MISSING_PKGS --needed
-            ;;
-        Debian|Ubuntu|LinuxMint)
-            sudo apt-get install $MISSING_PKGS
-            ;;
-        *)
-            echo "Your distribution is unsupported but you can proceed if the packages are installed"
-            printf "Proceed? [y/N]: "
-            read yn
-            if [ ! "$yn" == "y" ]; then
-                exit
-            fi
-            ;;
-    esac
-}
+## Build check 
 
-case $DISTRIB_ID in
+check_file "$SCR_HOME/CMakeLists.txt" || exit
+
+## System deps check 
+
+MISSING_PKGS=()
+WANTED_PKGS=()
+case $DISTRIB_ID in 
     Arch|ManjaroLinux)
+        WANTED_PKGS=(curl zlib glibc base-devel cmake)
         ;;
-    Debian|Ubuntu|LinuxMint)    # are these the correct DISTRIB_IDs?
+    Debian|Ubuntu|LinuxMint)
+        WANTED_PKGS=(libcurl4-openssl-dev zlib1g-dev cmake build-essential)
         ;;
     *)
-        echo "[WARNING] $DISTRIB_ID is unkown to installscript!"
+        log $_c_note"Note: No package list for $DISTRIB_ID"$_c_normal
         ;;
 esac
 
-_test_pkg libcurl4-openssl-dev
-_test_pkg zlib1g-dev
-_test_pkg cmake
-_test_pkg build-essential
+for pk in ${WANTED_PKGS[@]}; do
+    if ! dist_check_package $pk; then
+        MISSING_PKGS+=$pk
+    fi
+done
 
-_install_packages
+if [ ${#MISSING_PKGS} -gt 1 ]; then 
+    logf $_c_note"You are missing packages. Do you want to install them now? [Y/n]: "
+    read yn
+    if [ x$yn != "xn" ]; then
+        dist_install_packages ${MISSING_PKGS[@]}
+    else
+        log $_c_warn"Continuing without installing packages"$_c_normal
+    fi
+fi
 
-# Build release lib
+## Game/Steam
+
+PD2_DATA="$(__locate_payday2_dir)" || exit $?
+STEAM_USERCONFIG="$(__locate_userconfig)" || exit $?
+
+###############################################################################
+# Build
+###############################################################################
+
+_CMAKE_CFLAGS="-march=native -mtune=native"
+_CMAKE_CXXFLAGS=$_CMAKE_CFLAGS
+_CMAKE_COMMAND="cmake '$SCR_HOME/CMakeLists.txt' -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='$_CMAKE_CXXFLAGS' -DCMAKE_C_FLAGS='$_CMAKE_CFLAGS'"
+
+echo $_CMAKE_COMMAND
+
+_CMAKE_LOGFILE=installer_cmake.log
+_MAKE_LOGFILE=installer_make.log
 
 BUILD_DIR=$SCR_HOME/installer_build
 
-if [ ! -d $BUILD_DIR ]; then
-    mkdir $BUILD_DIR
-fi
+check_file $BUILD_DIR || mkdir $BUILD_DIR
 
 cd $BUILD_DIR
 
-if ! cmake $SCR_HOME/CMakeLists.txt -B$BUILD_DIR -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-march=native -mtune=native" -DCMAKE_C_FLAGS="-march=native -mtune=native"
+logf "Running CMake: "
+
+if ! eval $_CMAKE_COMMAND -B$BUILD_DIR >$PWD/$_CMAKE_LOGFILE 2>&1
 then
-    _cmake_status=$?
-    echo "cmake failed ($_cmake_status)"
+    log $_c_fail"Failed"$_c_normal
+    log $_c_note"Please see the CMake log at "$(realpath "$PWD/$_CMAKE_LOGFILE")$_c_normal
     exit $_cmake_status
 else
-    make
+    log $_c_success"OK"$_c_normal
+    logf $_c_normal"Building BLT: "$_c_normal
+    if ! make >$PWD/$_MAKE_LOGFILE 2>&1; then
+        log $_c_fail"Failed"
+        log $_c_note"Please see the Make log at "$(realpath "$PWD/$_MAKE_LOGFILE")$_c_normal
+        exit $_make_status
+    else
+        log $_c_success"OK"$_c_normal
+    fi
 fi
 
-LIB_FILE=$BUILD_DIR/libblt_loader.so
-
-if [ ! -f $LIB_FILE ]; then
-    echo "could not find $LIB_FILE"
-    exit 1
-fi
-
-# Find PAYDAY 2
-
-echo "Looking for payday2_release... this could take a moment"
-PD2_DATA=$(dirname "$(find $STEAM_LIBRARY -maxdepth 4 -type f -name payday2_release)")
-LIB_INSTALLED=$PD2_DATA/libblt_loader.so
-
-if [ ! -d "$PD2_DATA" ]; then
-    echo "Could not find PD2 at $PD2_DATA"
-    echo "Either you need to install PAYDAY 2, or set the environment variable STEAM_LIBRARY to the location of the steam library it is installed in"
-    exit 1
-fi
-
-cp "$LIB_FILE" "$LIB_INSTALLED"
-
-# install mods folder
-
-if [ ! -d "$PD2_DATA/mods" ]; then
-    cp -r $(readlink -f "$SCR_HOME/lua/mods") "$PD2_DATA"
-fi
-
-# Check for python 2.7
-if which python2.7 >/dev/null 2>/dev/null; then
-    # Find localconfig VDFs and set launch options
-    find $STEAM_BASE/userdata -type f -name localconfig.vdf | xargs -n1 $SCR_HOME/installer/enable_blt_wrapper.py
-    echo "Launch parameters for PAYDAY 2 on all your Steam Profiles have been set to load BLT"
-else
-    echo "Set the following line as your custom launch options for PAYDAY 2:"
-    echo "  env LD_PRELOAD=\"\$LD_PRELOAD ./libblt_loader.so\" %command%"
-fi
+install_artifact "loader" "$BUILD_DIR/libblt_loader.so" "$PD2_DATA/libblt_loader.so" || exit 1
+install_artifact "lua base" "$SCR_HOME/lua/mods" "$PD2_DATA/mods" noupdate || exit 1
+__modify_userconfig $STEAM_USERCONFIG
 
 # vim: set ts=4 softtabstop=0 sw=4 expandtab:

@@ -97,9 +97,7 @@ cp -r $(readlink -f "$REPO_HOME/lua/mods") "$STAGE_DIR"
 
 # Copy package installer
 cp "$PKG_HOME/dist_install.sh"  "$STAGE_DIR/install.sh"
-
-if [ ! -d "$STAGE_DIR/.installer" ]; then
-    cp -r "$REPO_HOME/installer"    "$STAGE_DIR/.installer"
-fi
+rm -r "$STAGE_DIR/.installer" >/dev/null 2>&1
+cp -r "$REPO_HOME/installer"    "$STAGE_DIR/.installer"
 
 tar cfJ $SCR_HOME/blt4l_$_SUBSCRIPT.tar.xz ./$STAGE_DIR_NAME/
