@@ -156,7 +156,7 @@ install_artifact() {
         log $_c_note"Already Installed"$_c_normal
         return 0
     else
-        if cp -rT "$_source" "$_dest" >/dev/null 2>&1; then
+        if cp -rTL "$_source" "$_dest" >/dev/null 2>&1; then
             log $_c_success"OK"$_c_normal
             return 0
         else
