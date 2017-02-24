@@ -1,0 +1,10 @@
+This is a messy hack I wrote to dump vtables in a non-PIC executable.
+
+You need to generate a list of symbols in the format `$size $name` and place it in /tmp/symlist.
+The elf format header is pretty useful here.
+
+There's a pregenerated copy in this folder.
+
+This is only here so you can reproduce the included vtable list. It's really awful and I'm ashamed of it.
+
+To use it, preload it in to PAYDAY like BLT. If everything worked correctly, you'll get a huge list of vtables, if not it will explode.
