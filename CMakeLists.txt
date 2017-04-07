@@ -42,6 +42,7 @@ set(SOURCE_FILES
     src/lapi_http.cc
     src/lapi_version.cc
     src/lapi_systemfs.cc
+    src/vmexport.cc
     )
 
 add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cc)
