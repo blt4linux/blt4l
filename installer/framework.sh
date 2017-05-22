@@ -71,7 +71,7 @@ __locate_userconfig() {
 
 __locate_payday2_dir() {
     logf "Looking for PAYDAY 2: "
-    __pd2_bin="$(find $STEAM_LIBRARY -maxdepth 4 -type f -name $__payday2_bin_name)"
+    __pd2_bin="$(find "$STEAM_LIBRARY" -maxdepth 4 -type f -name "$__payday2_bin_name")"
     if [ -e "$__pd2_bin" ]; then
         log $_c_success$__pd2_bin$_c_normal
         echo $(dirname "$__pd2_bin")
