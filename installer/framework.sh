@@ -103,7 +103,7 @@ __manual_config_notice() {
     log "  To do this, right-click on PAYDAY 2 and select 'Properties' and then 'Set Launch Options'"
     log "  when prompted, enter the text on the next line and click 'OK':"
     log "      env LD_PRELOAD=\"\$LD_PRELOAD ./libblt_loader.so\" %command%"
-    log "  if done correctly, PAYDAY 3 will now start with BLT."
+    log "  if done correctly, PAYDAY 2 will now start with BLT."
     logf $_c_normal
 }
 
