@@ -8,6 +8,7 @@ extern "C" {
 #include <blt/lapi.hh>
 #include <blt/log.hh>
 #include <blt/event.hh>
+#include <blt/lapi_version.hh>
 #include <list>
 #include <string>
 
@@ -185,6 +186,12 @@ namespace blt {
                 { NULL, NULL }
             };
             luaL_openlib(state, "file", fileLib, 0);
+
+            luaL_Reg bltLib[] = {
+                { "PlatformName",       lapi::blt_platform  },
+                { NULL, NULL }
+            };
+            luaL_openlib(state, "BLT", bltLib, 0);
         }
 
 
