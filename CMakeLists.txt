@@ -33,6 +33,7 @@ add_library(blt_loader SHARED ${SOURCE_FILES} src/blt_main.cc)
 
 target_link_libraries(blt_loader
 	dl
+    crypto
 	${CURL_LIBRARIES}
 	${OpenSSL_LIBRARIES}
 	${ZLIB_LIBRARIES}
