@@ -1,6 +1,7 @@
 #include <list>
 #include <mutex>
 #include <thread>
+#include <string>
 
 namespace blt {
 
