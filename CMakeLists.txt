@@ -1,4 +1,16 @@
 cmake_minimum_required(VERSION 2.8.0)
+
+# You can do it with GCC, but it's complicated
+option(USE_LIBCXX "build BLT with libc++ instead of libstdc++, requires clang" OFF)
+
+# LibCXX / Patches support
+if (USE_LIBCXX)
+   message("Using Clang/LibC++")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+   add_definitions(-DBLT_USING_LIBCXX)
+   set(CMAKE_CXX_COMPILER clang++)
+endif()
+
 project(blt4l)
 
 find_package(CURL)
@@ -11,7 +23,7 @@ endif()
 
 add_definitions(-D_GNU_SOURCE)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -fpermissive --std=gnu++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
 
 include_directories(include subhook)
 

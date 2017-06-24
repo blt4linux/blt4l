@@ -1,17 +1,31 @@
+// TODO split this out or something idk
 extern "C" {
 #include <dlfcn.h>
+#include <dirent.h>
 }
+
 #include <iostream>
+#include <list>
+#include <string>
 #include <subhook.h>
+
+#if defined(BLT_USING_LIBCXX) // not used otherwise, no point in wasting compile time :p
+#include <vector>
+#include <map>
+#include <mutex>
+#endif
+
 #include <blt/hook.hh>
 #include <blt/http.hh>
 #include <blt/lapi.hh>
 #include <blt/log.hh>
 #include <blt/event.hh>
 #include <blt/lapi_version.hh>
-#include <list>
-#include <string>
 
+
+/**
+ * Shorthand to reinstall a hook when a function exits, like a trampoline
+ */
 #define hook_remove(hookName) SubHook::ScopedRemove _sh_remove_raii(&hookName)
 
 namespace blt {
@@ -46,10 +60,8 @@ namespace blt {
     void        (*lua_rawgeti)      (lua_state*, int, int);
     void        (*luaL_unref)       (lua_state*, int, int);
 
-    /**
-     * This is one of those damn C++ functions
-     */
     void*       (*do_game_update)   (void* /* this */);
+
 
     /*
      * Internal
@@ -238,6 +250,83 @@ namespace blt {
         lua_close(state);
     }
 
+#if defined(BLT_USING_LIBCXX)
+    // Track DFS root dirs by their instance pointers
+    std::map<void*, std::string> dfsRootsByInstance;
+    std::mutex mx_dfsRootsByInstance;
+
+    /**
+     * uber-simple and highly effective mod_overrides fix
+     * Requires libcxx for implementation-level compatibility with PAYDAY
+     */
+
+    SubHook     sh_dsl_dfs_set_base_path;
+    void        (*dsl_dfs_set_base_path)(void*, std::string const*);
+
+    /**
+     * Diesel VFS setup calls this to configure DFS instances and point them at a folder.
+     * That folder is their absolute root.
+     *
+     * Since we need that information for the mod_overrides fix, we capture it for later use
+     */
+    void
+    dt_dsl_dfs_set_base_path(void* _this, std::string const* base_path)
+    {
+        hook_remove(sh_dsl_dfs_set_base_path);
+        dsl_dfs_set_base_path(_this, base_path);
+
+        std::lock_guard<std::mutex> guard(mx_dfsRootsByInstance);
+        dfsRootsByInstance[_this] = std::string(*base_path); // duplicate base path
+        printf("Captured DiskFileSystem %p root (%s)\n",
+                _this, base_path->c_str());
+    }
+
+    SubHook     sh_dsl_dfs_list_all;
+    void        (*dsl_dfs_list_all)(void*, std::vector<std::string>*, std::vector<std::string>*, 
+                                    std::string const*);
+
+    /**
+     * Diesel FS API function used to list files in a directory.
+     * Non-recursive
+     *
+     * @param _this         instance pointer
+     * @param subfiles      subfiles, sometimes null
+     * @param subfolders    subfolders listed within, relative names
+     * @param dir           path relative to filesystem object root
+     */
+    void
+    dt_dsl_dfs_list_all(void* _this, std::vector<std::string>* subfiles, std::vector<std::string>* subfolders,
+                        std::string const* dir)
+    {
+        // XXX naive
+        std::string dfsBase = dfsRootsByInstance[_this];
+
+        // List dirents
+        DIR* entries = opendir((dfsBase + "/" + (*dir)).c_str());
+
+        if (entries)
+        {
+            struct dirent* entry = NULL;
+            // Skip specials
+            for(uint8_t idx = 0; idx < 2; ++idx) readdir(entries);
+
+            while ((entry = readdir(entries)))
+            {
+                if ((entry->d_type == DT_DIR) && subfolders)
+                {
+                    subfolders->push_back(std::string(entry->d_name));
+                }
+                else if (subfiles)
+                {
+                    subfiles->push_back(std::string(entry->d_name));
+                }
+            }
+        }
+    }
+
+    // --------------------------
+#endif
+
     void
     blt_init_hooks(void* dlHandle)
     {
@@ -277,8 +366,18 @@ namespace blt {
 
             // _ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE = dsl::LuaInterface::newstate(...) 
             setcall(_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE, dsl_lua_newstate); 
+
             // _ZN11Application6updateEv = Application::update()
             setcall(_ZN11Application6updateEv, do_game_update); 
+
+#if defined(BLT_USING_LIBCXX)
+            // dsl::DiskFileSystem
+            // Set the base path for a disk-based VFS backend
+            setcall(_ZN3dsl14DiskFileSystem13set_base_pathERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE, dsl_dfs_set_base_path);
+            // List entries in a directory within a native-fs based VFS backend (DiskFileSystem)
+            setcall(_ZNK3dsl14DiskFileSystem8list_allEPNSt3__16vectorINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS6_IS8_EEEESB_RKS8_,
+                    dsl_dfs_list_all);
+#endif
         }
 
         log::log("installing hooks", log::LOG_INFO);
@@ -288,13 +387,20 @@ namespace blt {
          */
 
         {
-            // These function intercepts have a hidden pointer param for `this`
             gameUpdateDetour.Install    ((void*) do_game_update,    (void*) dt_Application_update);
-
-            // These are proper C functions
             luaNewStateDetour.Install   ((void*) dsl_lua_newstate,  (void*) dt_dsl_lua_newstate);
             luaCloseDetour.Install      ((void*) lua_close,         (void*) dt_lua_close);
             luaCallDetour.Install       ((void*) lua_call,          (void*) dt_lua_call);
+
+#if defined(BLT_USING_LIBCXX)
+            // dsl::DiskFileSystem::set_base_path() - Hook captures DFS paths for use later
+            sh_dsl_dfs_set_base_path
+                .Install((void*) dsl_dfs_set_base_path, (void*) dt_dsl_dfs_set_base_path);
+
+            // dsl::DiskFileSystem::list_all() - Completely replaces defective list_all function
+            sh_dsl_dfs_list_all
+                .Install((void*) dsl_dfs_list_all, (void*) dt_dsl_dfs_list_all);
+#endif
         }
 
 #       undef setcall
