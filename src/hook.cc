@@ -321,6 +321,8 @@ namespace blt {
                     subfiles->push_back(std::string(entry->d_name));
                 }
             }
+
+            closedir(entries);
         }
     }
 
