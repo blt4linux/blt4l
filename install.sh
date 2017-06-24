@@ -71,18 +71,32 @@ STEAM_USERCONFIG="$(__locate_userconfig)" || exit $?
 # Build
 ###############################################################################
 
+
 _CMAKE_CFLAGS="-march=native -mtune=native"
 _CMAKE_CXXFLAGS=$_CMAKE_CFLAGS
-_CMAKE_COMMAND="cmake '$SCR_HOME/CMakeLists.txt' -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='$_CMAKE_CXXFLAGS' -DCMAKE_C_FLAGS='$_CMAKE_CFLAGS'"
 
-echo $_CMAKE_COMMAND
+_CMAKE_PROJECT_OPTS=""
+
+logf $_c_note"Would you like to build against libc++? Clang and libc++ must be installed already. [Y/n]: "
+read _libcxx_yn
+if [ x$_libcxx_yn != "xn" ]; then
+    _CMAKE_PROJECT_OPTS="$_CMAKE_PROJECT_OPTS -DUSE_LIBCXX=ON"
+fi
+
+_CMAKE_COMMAND="cmake $_CMAKE_PROJECT_OPTS '$SCR_HOME/CMakeLists.txt' -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS='$_CMAKE_CXXFLAGS' -DCMAKE_C_FLAGS='$_CMAKE_CFLAGS'"
+
+
+echo $_c_normal$_CMAKE_COMMAND
 
 _CMAKE_LOGFILE=installer_cmake.log
 _MAKE_LOGFILE=installer_make.log
 
 BUILD_DIR=$SCR_HOME/installer_build
 
-check_file $BUILD_DIR || mkdir $BUILD_DIR
+if check_file $BUILD_DIR; then
+    rm -r $BUILD_DIR
+fi
+mkdir $BUILD_DIR
 
 cd $BUILD_DIR
 
