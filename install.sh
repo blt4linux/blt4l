@@ -24,6 +24,8 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
         log $_c_fail"Failed (git: $?)"$_c_normal
         exit
     fi
+else
+    logf $_c_fail"It looks like BLT wasn't cloned from Git. Be sure SubHook and the Lua are present!"
 fi
 
 ## Build check 
