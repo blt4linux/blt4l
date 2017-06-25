@@ -64,7 +64,7 @@ end
 cd $scr_dir
 
 chr_bld ubuntu_trusty
-chr_bld ubuntu_precise
+# chr_bld ubuntu_precise # steamrt
 
 set -x CMAKE_CXX_COMPILER (which g++4.8)
 set -x CMAKE_C_COMPILER   (which gcc-4.8)
