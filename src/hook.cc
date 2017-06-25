@@ -10,16 +10,18 @@ extern "C" {
 #include <subhook.h>
 
 #if defined(BLT_USING_LIBCXX) // not used otherwise, no point in wasting compile time :p
-#include <vector>
-#include <map>
-#include <mutex>
+#   include <vector>
+#   include <map>
+#   include <mutex>
 #endif
 
 #include <blt/hook.hh>
 #include <blt/http.hh>
-#include <blt/lapi.hh>
 #include <blt/log.hh>
 #include <blt/event.hh>
+
+#include <blt/lapi.hh>
+#include <blt/lapi_systemfs.hh>
 #include <blt/lapi_version.hh>
 
 
@@ -182,14 +184,14 @@ namespace blt {
          */
 
         {
-            luaL_Reg consoleLib[] = {
+            luaL_Reg lib_console[] = {
                 { "CreateConsole",  lapi::console_noop },
                 { "DestroyConsole", lapi::console_noop },
                 { NULL, NULL }
             };
-            luaL_openlib(state, "console", consoleLib, 0);
+            luaL_openlib(state, "console", lib_console, 0);
 
-            luaL_Reg fileLib[] = {
+            luaL_Reg lib_file[] = {
                 { "GetDirectories",     lapi::getdir        },
                 { "GetFiles",           lapi::getfiles      },
                 { "RemoveDirectory",    lapi::removedir     },
@@ -197,13 +199,19 @@ namespace blt {
                 { "DirectoryExists",    lapi::dir_exists    },
                 { NULL, NULL }
             };
-            luaL_openlib(state, "file", fileLib, 0);
+            luaL_openlib(state, "file", lib_file, 0);
 
-            luaL_Reg bltLib[] = {
+            luaL_Reg lib_BLT[] = {
                 { "PlatformName",       lapi::blt_platform  },
                 { NULL, NULL }
             };
-            luaL_openlib(state, "BLT", bltLib, 0);
+            luaL_openlib(state, "BLT", lib_BLT, 0);
+
+            luaL_Reg lib_SystemFS[] = {
+                { "exists",  lapi::SystemFS::exists },
+                { NULL, NULL }
+            };
+            luaL_openlib(state, "SystemFS", lib_SystemFS, 0);
         }
 
 
@@ -213,7 +221,6 @@ namespace blt {
             int result;
 
             result = luaL_loadfile(state, "mods/base/base.lua");
-            log::log("luaL_loadfile() = " + std::to_string(result), log::LOG_INFO);
 
             if (result == LUAErrSyntax) 
             {
@@ -224,7 +231,6 @@ namespace blt {
             }
 
             result = lua_pcall(state, 0, 1, 0);
-            log::log("lua_pcall(...) = " + std::to_string(result), log::LOG_INFO);
 
             if (result == LUAErrRun)
             {

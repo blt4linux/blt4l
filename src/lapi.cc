@@ -1,3 +1,7 @@
+/**
+ * BLT standard API, excl. HTTP (see lapi_http.cc, http.cc)
+ */
+
 #include <blt/lapi.hh>
 #include <blt/hook.hh>
 #include <blt/log.hh>
