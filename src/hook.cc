@@ -313,11 +313,14 @@ namespace blt {
         if (entries)
         {
             struct dirent* entry = NULL;
-            // Skip specials
-            for(uint8_t idx = 0; idx < 2; ++idx) readdir(entries);
 
             while ((entry = readdir(entries)))
             {
+                if ((strcmp(entry->d_name, ".") == 0) || (strcmp(entry->d_name, "..") == 0))
+                {
+                    continue;
+                }
+
                 if ((entry->d_type == DT_DIR) && subfolders)
                 {
                     subfolders->push_back(std::string(entry->d_name));
