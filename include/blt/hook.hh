@@ -18,10 +18,7 @@
 
 namespace blt {
 
-
-    extern   void* (*dsl_lua_newstate) (lua_state**, bool, bool, bool);
     bool check_active_state(lua_state*);
-
     void blt_init_hooks(void*);
 
 }

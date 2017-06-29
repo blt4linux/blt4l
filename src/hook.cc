@@ -17,6 +17,8 @@ extern "C" {
 
 #include <lua.hh>
 
+#include <dsl/LuaInterface.hh>
+
 #include <blt/hook.hh>
 #include <blt/http.hh>
 #include <blt/log.hh>
@@ -38,7 +40,7 @@ namespace blt {
     using std::cout;
     using std::string;
 
-    void* (*dsl_lua_newstate) (lua_state** /* this */, bool, bool, bool);
+    void* (*dsl_lua_newstate) (dsl::LuaInterface* /* this */, bool, bool, dsl::LuaInterface::Allocation);
     void* (*do_game_update)   (void* /* this */);
 
 
@@ -124,7 +126,7 @@ namespace blt {
     }
 
     void*
-    dt_dsl_lua_newstate(lua_state** pThis, bool b1, bool b2, bool allocator)
+    dt_dsl_lua_newstate(dsl::LuaInterface* _this, bool b1, bool b2, dsl::LuaInterface::Allocation allocator)
     {
 #       define lua_mapfn(name, function) \
             lua_pushcclosure(state, function, 0); \
@@ -132,8 +134,10 @@ namespace blt {
 
         hook_remove(luaNewStateDetour);
 
-        void* returnVal = dsl_lua_newstate(pThis, b1, b2, allocator);
-        lua_state* state = *pThis; // wut
+        // void* returnVal = dsl_lua_newstate(_this, b1, b2, allocator);
+        void* returnVal = _this->newstate(b1, b2, allocator);
+        // lua_state* state = *_this; // wut
+        lua_state* state = _this->state;
 
         if (!state)
         {
@@ -318,20 +322,22 @@ namespace blt {
     void
     blt_init_hooks(void* dlHandle)
     {
-#       define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol); \
+#       define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol); 
 
         log::log("finding lua functions", log::LOG_INFO);
 
         /*
-         * DL Init
+         * XXX Still using the ld to get member function bodies from memory, since pedantic compilers refuse to allow 
+         * XXX non-static instanceless member function references 
+         * XXX (e.g. clang won't allow a straight pointer to _ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE via `&dsl::LuaInterface::newstate`)
          */
 
         {
             // _ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE = dsl::LuaInterface::newstate(...) 
-            setcall(_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE, dsl_lua_newstate); 
+            setcall(_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE, dsl_lua_newstate);
 
             // _ZN11Application6updateEv = Application::update()
-            setcall(_ZN11Application6updateEv, do_game_update); 
+            setcall(_ZN11Application6updateEv, do_game_update);
 
 #if defined(BLT_USING_LIBCXX)
             // dsl::DiskFileSystem
@@ -350,10 +356,10 @@ namespace blt {
          */
 
         {
-            gameUpdateDetour.Install    ((void*) do_game_update,    (void*) dt_Application_update);
-            luaNewStateDetour.Install   ((void*) dsl_lua_newstate,  (void*) dt_dsl_lua_newstate);
-            luaCloseDetour.Install      ((void*) &lua_close,        (void*) dt_lua_close);
-            luaCallDetour.Install       ((void*) &lua_call,         (void*) dt_lua_call);
+            gameUpdateDetour.Install    ((void*) do_game_update,                (void*) dt_Application_update);
+            luaNewStateDetour.Install   ((void*) dsl_lua_newstate,              (void*) dt_dsl_lua_newstate);
+            luaCloseDetour.Install      ((void*) &lua_close,                    (void*) dt_lua_close);
+            luaCallDetour.Install       ((void*) &lua_call,                     (void*) dt_lua_call);
 
 #if defined(BLT_USING_LIBCXX)
             // dsl::DiskFileSystem::set_base_path() - Hook captures DFS paths for use later
