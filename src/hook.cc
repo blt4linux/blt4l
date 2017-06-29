@@ -15,6 +15,8 @@ extern "C" {
 #   include <mutex>
 #endif
 
+#include <lua.hh>
+
 #include <blt/hook.hh>
 #include <blt/http.hh>
 #include <blt/log.hh>
@@ -36,33 +38,8 @@ namespace blt {
     using std::cout;
     using std::string;
 
-    void        (*lua_call)         (lua_state*, int, int);
-    int         (*lua_pcall)        (lua_state*, int, int, int);
-    int         (*lua_gettop)       (lua_state*);
-    void        (*lua_settop)       (lua_state*, int);
-    const char* (*lua_tolstring)    (lua_state*, int, size_t*);
-    int         (*luaL_loadfile)    (lua_state*, const char*);
-    int         (*lua_load)         (lua_state*, lua_reader*, void*, const char*);
-    void        (*lua_setfield)     (lua_state*, int, const char*);
-    void        (*lua_createtable)  (lua_state*, int, int);
-    void        (*lua_insert)       (lua_state*, int);
-    lua_state*  (*lua_newstate)     (lua_alloc, void*);
-    lua_state*  (*luaL_newstate)    (void);
-    void*       (*dsl_lua_newstate) (lua_state** /* this */, bool, bool, bool);
-    void        (*lua_close)        (lua_state*);
-    void        (*lua_rawset)       (lua_state*, int);
-    void        (*lua_settable)     (lua_state*, int);
-    void        (*lua_pushnumber)   (lua_state*, double);
-    void        (*lua_pushinteger)  (lua_state*, ptrdiff_t);
-    void        (*lua_pushboolean)  (lua_state*, bool);
-    void        (*lua_pushcclosure) (lua_state*, lua_cfunction, int);
-    void        (*lua_pushlstring)  (lua_state*, const char*, size_t);
-    void        (*luaL_openlib)     (lua_state*, const char*, const luaL_Reg*, int);
-    int         (*luaL_ref)         (lua_state*, int);
-    void        (*lua_rawgeti)      (lua_state*, int, int);
-    void        (*luaL_unref)       (lua_state*, int, int);
-
-    void*       (*do_game_update)   (void* /* this */);
+    void* (*dsl_lua_newstate) (lua_state** /* this */, bool, bool, bool);
+    void* (*do_game_update)   (void* /* this */);
 
 
     /*
@@ -350,31 +327,6 @@ namespace blt {
          */
 
         {
-            setcall(lua_call,           lua_call);
-            setcall(lua_pcall,          lua_pcall);
-            setcall(lua_gettop,         lua_gettop);
-            setcall(lua_settop,         lua_settop);
-            setcall(lua_tolstring,      lua_tolstring);
-            setcall(luaL_loadfile,      luaL_loadfile);
-            setcall(lua_load,           lua_load);
-            setcall(lua_setfield,       lua_setfield);
-            setcall(lua_createtable,    lua_createtable);
-            setcall(lua_insert,         lua_insert);
-            setcall(lua_newstate,       lua_newstate);
-            setcall(lua_close,          lua_close);
-            setcall(lua_rawset,         lua_rawset);
-            setcall(lua_settable,       lua_settable);
-            setcall(lua_pushnumber,     lua_pushnumber);
-            setcall(lua_pushinteger,    lua_pushinteger);
-            setcall(lua_pushboolean,    lua_pushboolean);
-            setcall(lua_pushcclosure,   lua_pushcclosure);
-            setcall(lua_pushlstring,    lua_pushlstring);
-            setcall(luaL_openlib,       luaL_openlib);
-            setcall(luaL_ref,           luaL_ref);
-            setcall(lua_rawgeti,        lua_rawgeti);
-            setcall(luaL_unref,         luaL_unref);
-            setcall(luaL_newstate,      luaL_newstate);
-
             // _ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE = dsl::LuaInterface::newstate(...) 
             setcall(_ZN3dsl12LuaInterface8newstateEbbNS0_10AllocationE, dsl_lua_newstate); 
 
@@ -400,8 +352,8 @@ namespace blt {
         {
             gameUpdateDetour.Install    ((void*) do_game_update,    (void*) dt_Application_update);
             luaNewStateDetour.Install   ((void*) dsl_lua_newstate,  (void*) dt_dsl_lua_newstate);
-            luaCloseDetour.Install      ((void*) lua_close,         (void*) dt_lua_close);
-            luaCallDetour.Install       ((void*) lua_call,          (void*) dt_lua_call);
+            luaCloseDetour.Install      ((void*) &lua_close,        (void*) dt_lua_close);
+            luaCallDetour.Install       ((void*) &lua_call,         (void*) dt_lua_call);
 
 #if defined(BLT_USING_LIBCXX)
             // dsl::DiskFileSystem::set_base_path() - Hook captures DFS paths for use later
