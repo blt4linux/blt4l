@@ -5,7 +5,7 @@ namespace blt {
    namespace lapi {
       namespace SystemFS {
 
-         int exists(lua_state*);
+         void _configure_lua(lua_state* state);
 
       }
    }

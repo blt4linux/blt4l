@@ -18,6 +18,7 @@ extern "C" {
 #include <lua.hh>
 
 #include <dsl/LuaInterface.hh>
+#include <dsl/FileSystem.hh>
 
 #include <blt/hook.hh>
 #include <blt/http.hh>
@@ -164,6 +165,8 @@ namespace blt {
          * Map native libraries
          */
 
+        lapi::SystemFS::_configure_lua(state);
+
         {
             luaL_Reg lib_console[] = {
                 { "CreateConsole",  lapi::console_noop },
@@ -187,12 +190,6 @@ namespace blt {
                 { NULL, NULL }
             };
             luaL_openlib(state, "BLT", lib_BLT, 0);
-
-            luaL_Reg lib_SystemFS[] = {
-                { "exists",  lapi::SystemFS::exists },
-                { NULL, NULL }
-            };
-            luaL_openlib(state, "SystemFS", lib_SystemFS, 0);
         }
 
 
@@ -257,15 +254,18 @@ namespace blt {
      * Since we need that information for the mod_overrides fix, we capture it for later use
      */
     void
-    dt_dsl_dfs_set_base_path(void* _this, std::string const* base_path)
+    dt_dsl_dfs_set_base_path(dsl::DiskFileSystem* _this, std::string const& base_path)
     {
         hook_remove(sh_dsl_dfs_set_base_path);
-        dsl_dfs_set_base_path(_this, base_path);
+        // dsl_dfs_set_base_path(_this, base_path);
+        _this->set_base_path(base_path);
 
         std::lock_guard<std::mutex> guard(mx_dfsRootsByInstance);
-        dfsRootsByInstance[_this] = std::string(*base_path); // duplicate base path
+        dfsRootsByInstance[_this] = std::string(base_path); // duplicate base path
         printf("Captured DiskFileSystem %p root (%s)\n",
-                _this, base_path->c_str());
+                _this, base_path.c_str());
+        printf("extracted base from DFS %p = %s\n", 
+                _this, *((char**) _this+8));
     }
 
     SubHook     sh_dsl_dfs_list_all;
@@ -282,14 +282,17 @@ namespace blt {
      * @param dir           path relative to filesystem object root
      */
     void
-    dt_dsl_dfs_list_all(void* _this, std::vector<std::string>* subfiles, std::vector<std::string>* subfolders,
-                        std::string const* dir)
+    dt_dsl_dfs_list_all(dsl::DiskFileSystem* _this, std::vector<std::string>* subfiles, 
+                        std::vector<std::string>* subfolders,
+                        std::string const& dir)
     {
         // XXX naive
+        // char* _dfsBase = *((char**) _this + 8);
         std::string dfsBase = dfsRootsByInstance[_this];
+        // std::string dfsBase = std::string(_dfsBase);
 
         // List dirents
-        DIR* entries = opendir((dfsBase + "/" + (*dir)).c_str());
+        DIR* entries = opendir((dfsBase + "/" + dir).c_str());
 
         if (entries)
         {
