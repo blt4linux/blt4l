@@ -27,6 +27,7 @@ extern "C" {
 #include <blt/lapi.hh>
 #include <blt/lapi_systemfs.hh>
 #include <blt/lapi_version.hh>
+#include <blt/lapi_vm.hh>
 
 
 /**
@@ -193,6 +194,8 @@ namespace blt {
                 { NULL, NULL }
             };
             luaL_openlib(state, "SystemFS", lib_SystemFS, 0);
+
+            lapi::vm::base_open(state);
         }
 
 
