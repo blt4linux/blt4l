@@ -52,8 +52,8 @@ namespace blt {
          int
          l_copy_file(lua_state* state)
          {
-            char const* from = luaL_checkstring(state, 1);
-            char const* to = luaL_checkstring(state, 2);
+            char const* from = lua_tolstring(state, 1, NULL);
+            char const* to = lua_tolstring(state, 2, NULL);
             int from_fd, to_fd;
 
             if ((from_fd = open(from, O_RDONLY)) == -1)
@@ -226,7 +226,7 @@ namespace blt {
                l_write(lua_state* state)
                {
                   FileHandle* _this = static_cast<FileHandle*>(luaL_checkudata(state, 1, _L_MT_NAME));
-                  char const* contents = luaL_checkstring(state, 2);
+                  char const* contents = lua_tolstring(state, 2, NULL);
                   if (contents)
                   {
                      _this->write(contents);
@@ -239,7 +239,7 @@ namespace blt {
                l_puts(lua_state* state)
                {
                   FileHandle* _this = static_cast<FileHandle*>(luaL_checkudata(state, 1, _L_MT_NAME));
-                  char const* contents = luaL_checkstring(state, 2);
+                  char const* contents = lua_tolstring(state, 2, NULL);
                   if (contents)
                   {
                      _this->write(contents);
@@ -288,8 +288,8 @@ namespace blt {
          int
          l_open(lua_state* state)
          {
-            char const* filename = luaL_checkstring(state, 1);
-            char const* mode = luaL_checkstring(state, 2);
+            char const* filename = lua_tolstring(state, 1, NULL);
+            char const* mode = lua_tolstring(state, 2, NULL);
 
             FILE* filep = fopen(filename, mode);
 

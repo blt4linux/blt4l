@@ -29,6 +29,7 @@ extern "C" {
 #include <blt/lapi_systemfs.hh>
 #include <blt/lapi_version.hh>
 
+#include <blt/patches/workshop.hh>
 
 /**
  * Shorthand to reinstall a hook when a function exits, like a trampoline
@@ -166,6 +167,7 @@ namespace blt {
          */
 
         lapi::SystemFS::_configure_lua(state);
+        patch::workshop::_configure_lua(state);
 
         {
             luaL_Reg lib_console[] = {
@@ -353,6 +355,8 @@ namespace blt {
         }
 
         log::log("installing hooks", log::LOG_INFO);
+
+        patch::workshop::_configure_hooks(dlHandle);
 
         /*
          * Intercept Init
