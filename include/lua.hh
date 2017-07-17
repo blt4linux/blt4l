@@ -3,6 +3,7 @@
 #include <cstddef>
 
 static int const LUARegistryIndex   = -10000;
+static int const LUAEnvironIndex    = -10001;
 static int const LUAGlobalsIndex    = -10002;
 static int const LUAYield           = 1;
 static int const LUAErrRun          = 2;
@@ -21,21 +22,23 @@ typedef struct {
 } luaL_Reg;
 
 extern "C" {
+   lua_state*   lua_newstate(lua_alloc, void*);
    void         lua_call(lua_state*, int, int);
    int          lua_pcall(lua_state*, int, int, int);
+   int          lua_load(lua_state*, lua_reader*, void*, const char*);
+   void         lua_close(lua_state*);
+
+   void         lua_setfield(lua_state*, int, const char*);
+   void         lua_getfield(lua_state*, int, const char*);
+
    int          lua_gettop(lua_state*);
    void         lua_settop(lua_state*, int);
-   const char*  lua_tolstring(lua_state*, int, size_t*);
-   int          lua_load(lua_state*, lua_reader*, void*, const char*);
-   void         lua_setfield(lua_state*, int, const char*);
-   void         lua_createtable(lua_state*, int, int);
-   void         lua_insert(lua_state*, int);
-   lua_state*   lua_newstate(lua_alloc, void*);
-   void         lua_close(lua_state*);
-   void         lua_rawset(lua_state*, int);
-   void         lua_settable(lua_state*, int);
+   int          lua_type(lua_state*, int);
+   const char*  lua_typename(lua_state*, int);
 
    void         lua_rawgeti(lua_state*, int, int);
+   void         lua_createtable(lua_state*, int, int);
+   void         lua_insert(lua_state*, int);
    void         lua_pushnumber(lua_state*, double);
    void         lua_pushinteger(lua_state*, ptrdiff_t);
    void         lua_pushboolean(lua_state*, bool);
@@ -43,10 +46,15 @@ extern "C" {
    void         lua_pushstring(lua_state*, const char*);
    void         lua_pushlstring(lua_state*, const char*, size_t);
    void         lua_pushvalue(lua_state*, int);
+   const char*  lua_tolstring(lua_state*, int, size_t*);
+   void         lua_rawset(lua_state*, int);
+   void         lua_settable(lua_state*, int);
+   void         lua_gettable(lua_state*, int);
+   void*        lua_touserdata(lua_state*, int);
 
    void*        lua_newuserdata(lua_state*, size_t);
 
-   const char*  luaL_checkstring(lua_state*, int);
+   const char*  luaL_checklstring(lua_state*, int, size_t*);
    void*        luaL_checkudata(lua_state*, int, const char*);
    int          luaL_loadfile(lua_state*, const char*);
    lua_state*   luaL_newstate(void);
