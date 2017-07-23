@@ -1,5 +1,7 @@
 /**
  * Terrible, terrible, terrible, vmt dumper for non-PIC executables. Or anything in the address space, really.
+ *
+ * _If you can LD_PRELOAD it, you can dump it!_
  * 
  * Some portions of (paraphrased) code (C) 2013-2016 Andrey Ponomarenko
  *
@@ -133,25 +135,35 @@ printvmt(void* dlh, void* ptr, uint64_t len)
 __attribute__((constructor)) void
 _test (void)
 {
-    FILE* symlist = fopen("/tmp/symlist", "r");
-    void* dlHandle = dlopen(NULL, RTLD_LAZY);  
+    char* symlist_path = getenv("VTDUMP_SYMLIST");
 
-    uint64_t size = 0;
-    char* current = NULL;
-    int   ret = 0;
-    while ((ret = fscanf(symlist, "%lu %ms\n", &size, &current)) != EOF)
+    if (symlist_path)
     {
-        if (current)
-        {
-            void* sym = dlsym(dlHandle, current);
-            printf("sym %s = %p (size = %lu)\n", current, sym, size);
-            if (sym)
-            {
-                printvmt(dlHandle, sym, size);
-                printf("\n");
-            }
-            free(current);
-        }
-    }
-   exit(1);
+       FILE* symlist = fopen(symlist_path, "r");
+       void* dlHandle = dlopen(NULL, RTLD_LAZY);  
+
+       uint64_t size = 0;
+       char* current = NULL;
+       int   ret = 0;
+       while ((ret = fscanf(symlist, "%lu %ms\n", &size, &current)) != EOF)
+       {
+           if (current)
+           {
+               void* sym = dlsym(dlHandle, current);
+               printf("sym %s = %p (size = %lu)\n", current, sym, size);
+               if (sym)
+               {
+                   printvmt(dlHandle, sym, size);
+                   printf("\n");
+               }
+               free(current);
+           }
+       }
+      exit(0);
+   }
+   else
+   {
+      fprintf(stderr, "No symbol list file defined in VTDUMP_SYMLIST");
+      exit(1);
+   }
 }
