@@ -16,149 +16,175 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <assert.h>
+
 // NOTE Ripped from vtable-dumper
 // type vdump_VTable_C1
 // type vdump_VTable_C2
 // type vdump_VTable_U
 typedef void* vdump_FunctionPointer;
 struct vdump_VTable_C1 {
-    uint64_t                baseoffset;
-    const char*             typeinfo;
-    vdump_FunctionPointer   virtualFuncs[0];
+   uint64_t                baseoffset;
+   const char*             typeinfo;
+   vdump_FunctionPointer   virtualFuncs[0];
 };
 
 struct vdump_VTable_C2 {
-    uint64_t                vcalloffset;
-    uint64_t                baseoffset;
-    const char*             typeinfo;
-    vdump_FunctionPointer   virtualFuncs[0];
+   uint64_t                vcalloffset;
+   uint64_t                baseoffset;
+   const char*             typeinfo;
+   vdump_FunctionPointer   virtualFuncs[0];
 };
 
 union vdump_VTable_U {
-    struct vdump_VTable_C1 const cat1;
-    struct vdump_VTable_C2 const cat2;
+   struct vdump_VTable_C1 const cat1;
+   struct vdump_VTable_C2 const cat2;
 };
 // end 
 
 void
 printvmt(void* dlh, void* ptr, uint64_t len)
 {
-    union vdump_VTable_U* table = (union vdump_VTable_U*) ptr;
+   union vdump_VTable_U* table = (union vdump_VTable_U*) ptr;
 
-    uint64_t    vmt_baseOffset = table->cat1.baseoffset;
-    const char* vmt_typeInfo   = table->cat1.typeinfo;
-    uint64_t*   vmt_functions  = (uint64_t*) table->cat1.virtualFuncs;
-    size_t      vmt_fnCount    = len / sizeof(ptrdiff_t);
+   uint64_t    vmt_baseOffset = table->cat1.baseoffset;
+   const char* vmt_typeInfo   = table->cat1.typeinfo;
+   uint64_t*   vmt_functions  = (uint64_t*) table->cat1.virtualFuncs;
+   size_t      vmt_fnCount    = len / sizeof(ptrdiff_t);
 
-    size_t      vmt_readoffset = 0;
-    size_t      vmt_readstep   = sizeof(ptrdiff_t);
+   size_t      vmt_readoffset = 0;
+   size_t      vmt_readstep   = sizeof(ptrdiff_t);
 
-    printf("    ... entries:    %lu\n",     
+   if (vmt_fnCount > 0)
+   {
+      printf("    ... entries:    %lu\n",     
             vmt_fnCount);
-    /* printf("    ... typeinfo:   %s\n",       */
-    /*         vmt_typeInfo); */
+   }
+   else
+   {
+      printf("    ... empty (!)\n");
+      return;
+   }
 
-    if (vmt_baseOffset != 0)
-    {
-        printf("%d      %luu\n", 0, vmt_baseOffset);
-    }
-    else
-    {
-        printf("0       (int (*)(...)) 0\n");
-    }
+   // Special consideration entries
 
-    Dl_info dla_info;
+   /* printf("    ... typeinfo:   %s\n",       */
+   /*         vmt_typeInfo); */
 
-    vmt_readoffset += vmt_readstep;
-    if (dladdr(vmt_typeInfo, &dla_info))
-    {
-        printf("%d      (int (*)(...)) (& %s)\n", vmt_readoffset, dla_info.dli_sname);
-    }
-    else
-    {
-        if (vmt_baseOffset != 0)
-        {
-            printf("%d      0u\n", vmt_readoffset);
-        }
-        else
-        {
-            printf("%d      (int (*)(...)) 0\n", vmt_readoffset);
-        }
-    }
+   // Special entry 0
+   if (vmt_baseOffset != 0)
+   {
+      printf("%-4d\t%luu\n", 0, vmt_baseOffset);
+   }
+   else
+   {
+      printf("%-4d\t(int (*)(...)) 0\n", 0);
+   }
 
-    for (size_t fnIndex = 0; fnIndex < vmt_fnCount - 3; ++fnIndex)
-    {
-        vmt_readoffset += vmt_readstep;
-        /* memset(&dla_info, 0, sizeof(dla_info)); */
+   if (vmt_fnCount < 2) return;
+
+   Dl_info dla_info;
+
+   // Special entry 1
+   vmt_readoffset += vmt_readstep;
+   if (dladdr(vmt_typeInfo, &dla_info))
+   {
+      printf("%-4d\t(int (*)(...)) (& %s)\n", vmt_readoffset, dla_info.dli_sname);
+   }
+   else
+   {
+      if (vmt_baseOffset != 0)
+      {
+         printf("%-4d\t0u\n", vmt_readoffset);
+      }
+      else
+      {
+         printf("%-4d\t(int (*)(...)) 0\n", vmt_readoffset);
+      }
+   }
+
+   if (vmt_fnCount < 3) return;
+
+   // Regular entries (2 +)
+
+   for (size_t fnIndex = 0; fnIndex < vmt_fnCount - 3; ++fnIndex)
+   {
+      vmt_readoffset += vmt_readstep;
+      assert(vmt_readoffset <= len);
 
 
-        void* fsym = vmt_functions[fnIndex];
-        
-        if (dladdr(fsym, &dla_info))
-        {
-            printf("%d      ", vmt_readoffset);
-            if (dla_info.dli_sname == NULL)
+      void* fsym = vmt_functions[fnIndex];
+
+      printf("%-4d\t", vmt_readoffset);
+
+      if (dladdr(fsym, &dla_info))
+      {
+         if (dla_info.dli_sname == NULL)
+         {
+            printf("(int (*)(...)) %p\n", (void*) (((ptrdiff_t) fsym) - ((ptrdiff_t) dla_info.dli_fbase)));
+         }
+         else if (strstr(dla_info.dli_sname, "__cxa_pure"))
+         {
+            printf("(int (*)(...)) %s\n", dla_info.dli_sname);
+         }
+         else /* if (strstr(dla_info.dli_sname, "_ZTI")) */
+         {
+            printf("(int (*)(...)) (& %s)\n", dla_info.dli_sname);
+         }
+      }
+      else 
+      {
+         if (fsym == NULL)
+         {
+            printf("0u");
+         }
+         else
+         {
+            if (((ptrdiff_t) fsym) < 0)
             {
-                printf("(int (*)(...)) %p\n", (void*) (((ptrdiff_t) fsym) - ((ptrdiff_t) dla_info.dli_fbase)));
-            }
-            else if (strstr(dla_info.dli_sname, "__cxa_pure"))
-            {
-                printf("(int (*)(...)) %s\n", dla_info.dli_sname);
-            }
-            else /* if (strstr(dla_info.dli_sname, "_ZTI")) */
-            {
-                printf("(int (*)(...)) (& %s)\n", dla_info.dli_sname);
-            }
-        }
-        else 
-        {
-            if (fsym == NULL)
-            {
-                printf("%d      0u", vmt_readoffset);
+               printf("(int (*)(...)) -%016p\n", (void*) (-((ptrdiff_t) fsym)));
             }
             else
             {
-                if (((ptrdiff_t) fsym) < 0)
-                {
-                    printf("(int (*)(...)) -%016p\n", (void*) (-((ptrdiff_t) fsym)));
-                }
-                else
-                {
-                    printf("(int (*)(...)) %016p\n", fsym);
-                }
+               printf("(int (*)(...)) %016p\n", fsym);
             }
-        }
+         }
+      }
 
-    }
+   }
 }
 
 __attribute__((constructor)) void
 _test (void)
 {
-    char* symlist_path = getenv("VTDUMP_SYMLIST");
+   char* symlist_path = getenv("VTDUMP_SYMLIST");
 
-    if (symlist_path)
-    {
-       FILE* symlist = fopen(symlist_path, "r");
-       void* dlHandle = dlopen(NULL, RTLD_LAZY);  
+   if (symlist_path)
+   {
+      FILE* symlist = fopen(symlist_path, "r");
+      void* dlHandle = dlopen(NULL, RTLD_LAZY);
 
-       uint64_t size = 0;
-       char* current = NULL;
-       int   ret = 0;
-       while ((ret = fscanf(symlist, "%lu %ms\n", &size, &current)) != EOF)
-       {
-           if (current)
-           {
-               void* sym = dlsym(dlHandle, current);
+      uint64_t size = 0;
+      char* current = NULL;
+      int   ret = 0;
+      while ((ret = fscanf(symlist, "%16lx %ms\n", &size, &current)) != EOF)
+      {
+         if (current)
+         {
+            void* sym = dlsym(dlHandle, current);
+            if (sym)
+            {
                printf("sym %s = %p (size = %lu)\n", current, sym, size);
-               if (sym)
-               {
-                   printvmt(dlHandle, sym, size);
-                   printf("\n");
-               }
-               free(current);
-           }
-       }
+               printvmt(dlHandle, sym, size);
+               printf("\n");
+            }
+            free(current);
+         }
+         else
+         {
+            fprintf(stderr, "W: null symname, but no EOF yet! check your formatting.\n");
+         }
+      }
       exit(0);
    }
    else

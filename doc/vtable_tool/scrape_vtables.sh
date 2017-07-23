@@ -1,3 +1,3 @@
 #!/bin/bash
 
-nm "$@" | grep '_ZT' | cut -d' ' -f3 
+nm -S "$@" | grep '_ZT' | cut -d' ' -f2,4
