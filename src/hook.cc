@@ -11,8 +11,6 @@ extern "C" {
 
 #if defined(BLT_USING_LIBCXX) // not used otherwise, no point in wasting compile time :p
 #   include <vector>
-#   include <map>
-#   include <mutex>
 #endif
 
 #include <lua.hh>
@@ -29,6 +27,7 @@ extern "C" {
 #include <blt/lapi_version.hh>
 #include <blt/lapi_vm.hh>
 
+#include <dsl/FileSystem.hh>
 
 /**
  * Shorthand to reinstall a hook when a function exits, like a trampoline
@@ -241,35 +240,11 @@ namespace blt {
     }
 
 #if defined(BLT_USING_LIBCXX)
-    // Track DFS root dirs by their instance pointers
-    std::map<void*, std::string> dfsRootsByInstance;
-    std::mutex mx_dfsRootsByInstance;
 
     /**
      * uber-simple and highly effective mod_overrides fix
      * Requires libcxx for implementation-level compatibility with PAYDAY
      */
-
-    SubHook     sh_dsl_dfs_set_base_path;
-    void        (*dsl_dfs_set_base_path)(void*, std::string const*);
-
-    /**
-     * Diesel VFS setup calls this to configure DFS instances and point them at a folder.
-     * That folder is their absolute root.
-     *
-     * Since we need that information for the mod_overrides fix, we capture it for later use
-     */
-    void
-    dt_dsl_dfs_set_base_path(void* _this, std::string const* base_path)
-    {
-        hook_remove(sh_dsl_dfs_set_base_path);
-        dsl_dfs_set_base_path(_this, base_path);
-
-        std::lock_guard<std::mutex> guard(mx_dfsRootsByInstance);
-        dfsRootsByInstance[_this] = std::string(*base_path); // duplicate base path
-        printf("Captured DiskFileSystem %p root (%s)\n",
-                _this, base_path->c_str());
-    }
 
     SubHook     sh_dsl_dfs_list_all;
     void        (*dsl_dfs_list_all)(void*, std::vector<std::string>*, std::vector<std::string>*, 
@@ -285,11 +260,11 @@ namespace blt {
      * @param dir           path relative to filesystem object root
      */
     void
-    dt_dsl_dfs_list_all(void* _this, std::vector<std::string>* subfiles, std::vector<std::string>* subfolders,
+    dt_dsl_dfs_list_all(dsl::DiskFileSystem* _this, std::vector<std::string>* subfiles, std::vector<std::string>* subfolders,
                         std::string const* dir)
     {
         // XXX naive
-        std::string dfsBase = dfsRootsByInstance[_this];
+        std::string dfsBase = _this->base_path;
 
         // List dirents
         DIR* entries = opendir((dfsBase + "/" + (*dir)).c_str());
@@ -344,8 +319,6 @@ namespace blt {
 
 #if defined(BLT_USING_LIBCXX)
             // dsl::DiskFileSystem
-            // Set the base path for a disk-based VFS backend
-            setcall(_ZN3dsl14DiskFileSystem13set_base_pathERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE, dsl_dfs_set_base_path);
             // List entries in a directory within a native-fs based VFS backend (DiskFileSystem)
             setcall(_ZNK3dsl14DiskFileSystem8list_allEPNSt3__16vectorINS1_12basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEENS6_IS8_EEEESB_RKS8_,
                     dsl_dfs_list_all);
@@ -365,9 +338,6 @@ namespace blt {
             luaCallDetour.Install       ((void*) &lua_call,                     (void*) dt_lua_call);
 
 #if defined(BLT_USING_LIBCXX)
-            // dsl::DiskFileSystem::set_base_path() - Hook captures DFS paths for use later
-            sh_dsl_dfs_set_base_path
-                .Install((void*) dsl_dfs_set_base_path, (void*) dt_dsl_dfs_set_base_path);
 
             // dsl::DiskFileSystem::list_all() - Completely replaces defective list_all function
             sh_dsl_dfs_list_all
