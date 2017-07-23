@@ -1,6 +1,6 @@
 This is a messy hack I wrote to dump vtables in a non-PIC executable.
 
-You need to generate a list of symbols in the format `$size $name` and place it in /tmp/symlist.
+You need to generate a list of symbols in the format `$size $name` and set `VTDUMP_SYMLIST` to its location.
 The elf format header is pretty useful here.
 
 There's a pregenerated copy in this folder.
