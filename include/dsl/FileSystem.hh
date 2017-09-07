@@ -34,9 +34,29 @@ namespace dsl {
     */
    class DiskFileSystem {
       public:
-         int8_t ___padding0[1]; // 8 bytes unknown space
+         struct VTable {
+            uint8_t ___padding0[16];
+            
+            void*   anon_1;
+            void*   destructor_0;
+            // void*   destructor_1;
 
-         std::string base_path; // this+8
+            bool    (*exists)(DiskFileSystem*, std::string*);
+            void*   (*exists_ex)(DiskFileSystem*, std::string*);
+            
+            bool    (*is_dir)(DiskFileSystem*, std::string*);
+         };
+
+      public:
+         DiskFileSystem::VTable* _vtable_p;
+
+         std::string base_path;
+
+         int8_t ___padding1[16]; // 16 bytes
+
+         std::string field_16h;
+
+         bool is_readonly;
 
       public:
          void set_base_path(std::string const&);
@@ -47,6 +67,8 @@ namespace dsl {
       public:
          void* get_top_fs(void) const;
          void* get_bottom_fs(void) const;
+
+         bool readonly(void) const;
 
          /**
           * Add filesystem to the stack,
