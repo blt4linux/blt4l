@@ -158,7 +158,6 @@ __attribute__((constructor)) void
 _test (void)
 {
    char* symlist_path = getenv("VTDUMP_SYMLIST");
-
    if (symlist_path)
    {
       FILE* symlist = fopen(symlist_path, "r");
@@ -167,7 +166,7 @@ _test (void)
       uint64_t size = 0;
       char* current = NULL;
       int   ret = 0;
-      while ((ret = fscanf(symlist, "%16lx %ms\n", &size, &current)) != EOF)
+      while ((ret = fscanf(symlist, "%lx %ms\n", &size, &current)) != EOF)
       {
          if (current)
          {
@@ -177,6 +176,11 @@ _test (void)
                printf("sym %s = %p (size = %lu)\n", current, sym, size);
                printvmt(dlHandle, sym, size);
                printf("\n");
+            }
+            else
+            {
+               fprintf(stderr, "W: dlsym returned null for sym `%s` (%lu) \n",
+                        current, size);
             }
             free(current);
          }
