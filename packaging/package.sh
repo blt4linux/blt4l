@@ -42,7 +42,7 @@ if which lsb_release 2>&1 >/dev/null; then
     _SUBSCRIPT=$_SUBSCRIPT"_"$(lsb_release -si)-$(lsb_release -sc)
 fi
 STAGE_DIR_NAME=blt4l_$_SUBSCRIPT
-STAGE_DIR=$SCR_HOME/$STAGE_DIR_NAME
+STAGE_DIR=$BUILD_DIR/$STAGE_DIR_NAME
 
 if [ ! -d $STAGE_DIR ]; then
     mkdir $STAGE_DIR
@@ -59,4 +59,5 @@ cp "$PKG_HOME/dist_install.sh"  "$STAGE_DIR/install.sh"
 rm -r "$STAGE_DIR/.installer" >/dev/null 2>&1
 cp -r "$REPO_HOME/installer"    "$STAGE_DIR/.installer"
 
-tar cfJ $SCR_HOME/blt4l_$_SUBSCRIPT.tar.xz ./$STAGE_DIR_NAME/
+cd $BUILD_DIR
+tar cfJ $BUILD_DIR/blt4l_$_SUBSCRIPT.tar.xz ./$STAGE_DIR_NAME/
