@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+
 static int const LUARegistryIndex   = -10000;
 static int const LUAGlobalsIndex    = -10002;
 static int const LUAYield           = 1;
