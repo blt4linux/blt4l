@@ -37,10 +37,10 @@ if [ ! -f $LIB_FILE ]; then
     exit 1
 fi
 
-_SUBSCRIPT=$(git describe --always --tag)
-if which lsb_release 2>&1 >/dev/null; then
-    _SUBSCRIPT=$_SUBSCRIPT"_"$(lsb_release -si)-$(lsb_release -sc)
-fi
+
+_DIST_NAME=$(perl -n -e'/PRETTY_NAME="(.+)"$/; print $1 =~ s/[\s]/_/gr =~ s/\//-/gr;' < /etc/os-release)
+
+_SUBSCRIPT="$(git describe --always --tag)_$_DIST_NAME"
 STAGE_DIR_NAME=blt4l_$_SUBSCRIPT
 STAGE_DIR=$BUILD_DIR/$STAGE_DIR_NAME
 
