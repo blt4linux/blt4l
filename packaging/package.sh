@@ -60,7 +60,7 @@ fi
 
 cd $BUILD_DIR
 
-if ! cmake -DUSE_LIBCXX=ON $REPO_HOME/CMakeLists.txt -B$BUILD_DIR -DCMAKE_BUILD_TYPE=Release
+if ! cmake $REPO_HOME/CMakeLists.txt -B$BUILD_DIR -DCMAKE_BUILD_TYPE=Release
 then
     _cmake_status=$?
     echo "cmake failed ($_cmake_status)"
