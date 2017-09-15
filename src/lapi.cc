@@ -9,6 +9,8 @@
 #include <blt/zip.hh>
 
 #include <sys/stat.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <vector>
 #include <string>
@@ -124,6 +126,33 @@ namespace blt {
 
             lua_pushboolean(state, fs::delete_directory(stdPath, false));
             return 1;
+        }
+
+        int
+        movedir(lua_state* state)
+        {
+            size_t fromLen, toLen;
+            const char* from = lua_tolstring(state, 1, &fromLen);
+            const char* to   = lua_tolstring(state, 2, &toLen);
+
+            if(lua_gettop(state) != 2)
+                luaL_error(state, "file.MoveDirectory(from, to) takes two arguments, not %d", lua_gettop(state));
+
+            if(strlen(from) != fromLen)
+                luaL_error(state, "file.MoveDirectory(from, to): argument 'from' cannot contain null characters!");
+
+            if(strlen(to) != toLen)
+                luaL_error(state, "file.MoveDirectory(from, to): argument 'to' cannot contain null characters!");
+
+            bool result = rename(from, to) == 0;
+            lua_pushboolean(state, result);
+            if(!result) {
+                const char* err = strerror(errno);
+                lua_pushlstring(state, err, strlen(err));
+                return 2;
+            } else {
+                return 1;
+            }
         }
 
         /*
