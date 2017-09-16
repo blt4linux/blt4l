@@ -144,7 +144,7 @@ namespace blt {
             if(strlen(to) != toLen)
                 luaL_error(state, "file.MoveDirectory(from, to): argument 'to' cannot contain null characters!");
 
-            bool result = rename(from, to) == 0;
+            bool result = (rename(from, to) == 0);
             lua_pushboolean(state, result);
             if(!result) {
                 const char* err = strerror(errno);
