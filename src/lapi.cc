@@ -155,6 +155,32 @@ namespace blt {
             }
         }
 
+        int
+        hash(lua_state* state)
+        {
+            if(lua_gettop(state) != 1)
+                luaL_error(state, "file.*Hash(path) takes one argument, not %d", lua_gettop(state));
+
+            size_t len;
+            const char* path_c = lua_tolstring(state, 1, &len);
+
+            if(strlen(path_c) != len)
+                luaL_error(state, "file.*Hash(path): argument 'path' cannot contain null characters!");
+
+            string path(path_c, len);
+
+            try {
+                string hash = fs::hash_file(path);
+
+                lua_pushlstring(state, hash.c_str(), hash.length());
+                return 1;
+            } catch(string e) {
+                lua_pushboolean(state, false);
+                lua_pushlstring(state, e.c_str(), e.length());
+                return 2;
+            }
+        }
+
         /*
          * LUA Meta-API
          */
