@@ -146,11 +146,14 @@ namespace blt {
 
             bool result = (rename(from, to) == 0);
             lua_pushboolean(state, result);
-            if(!result) {
+            if(!result)
+            {
                 const char* err = strerror(errno);
                 lua_pushlstring(state, err, strlen(err));
                 return 2;
-            } else {
+            }
+            else
+            {
                 return 1;
             }
         }
@@ -174,7 +177,8 @@ namespace blt {
 
                 lua_pushlstring(state, hash.c_str(), hash.length());
                 return 1;
-            } catch(string e) {
+            }
+            catch(string e) {
                 lua_pushboolean(state, false);
                 lua_pushlstring(state, e.c_str(), e.length());
                 return 2;
