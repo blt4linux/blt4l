@@ -9,6 +9,8 @@
 #include <blt/zip.hh>
 
 #include <sys/stat.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <vector>
 #include <string>
@@ -124,6 +126,63 @@ namespace blt {
 
             lua_pushboolean(state, fs::delete_directory(stdPath, false));
             return 1;
+        }
+
+        int
+        movedir(lua_state* state)
+        {
+            size_t fromLen, toLen;
+            const char* from = lua_tolstring(state, 1, &fromLen);
+            const char* to   = lua_tolstring(state, 2, &toLen);
+
+            if(lua_gettop(state) != 2)
+                luaL_error(state, "file.MoveDirectory(from, to) takes two arguments, not %d", lua_gettop(state));
+
+            if(strlen(from) != fromLen)
+                luaL_error(state, "file.MoveDirectory(from, to): argument 'from' cannot contain null characters!");
+
+            if(strlen(to) != toLen)
+                luaL_error(state, "file.MoveDirectory(from, to): argument 'to' cannot contain null characters!");
+
+            bool result = (rename(from, to) == 0);
+            lua_pushboolean(state, result);
+            if(!result)
+            {
+                const char* err = strerror(errno);
+                lua_pushlstring(state, err, strlen(err));
+                return 2;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        int
+        hash(lua_state* state)
+        {
+            if(lua_gettop(state) != 1)
+                luaL_error(state, "file.*Hash(path) takes one argument, not %d", lua_gettop(state));
+
+            size_t len;
+            const char* path_c = lua_tolstring(state, 1, &len);
+
+            if(strlen(path_c) != len)
+                luaL_error(state, "file.*Hash(path): argument 'path' cannot contain null characters!");
+
+            string path(path_c, len);
+
+            try {
+                string hash = fs::hash_file(path);
+
+                lua_pushlstring(state, hash.c_str(), hash.length());
+                return 1;
+            }
+            catch(string e) {
+                lua_pushboolean(state, false);
+                lua_pushlstring(state, e.c_str(), e.length());
+                return 2;
+            }
         }
 
         /*

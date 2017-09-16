@@ -178,6 +178,9 @@ namespace blt {
                 { "RemoveDirectory",    lapi::removedir     },
                 { "CreateDirectory",    lapi::createdir     },
                 { "DirectoryExists",    lapi::dir_exists    },
+                { "MoveDirectory",      lapi::movedir       },
+                { "DirectoryHash",      lapi::hash          },
+                { "FileHash",           lapi::hash          },
                 { NULL, NULL }
             };
             luaL_openlib(state, "file", lib_file, 0);

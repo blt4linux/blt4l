@@ -6,12 +6,18 @@
 #include <unistd.h>
 #include <cerrno>
 #include <ftw.h>
+#include <string.h>
 
 #include <string>
 #include <vector>
 #include <fstream>
 #include <sstream>
 #include <streambuf>
+#include <iomanip>
+#include <stack>
+#include <algorithm>
+
+#include <openssl/sha.h>
 
 // PATH_MAX
 #include <limits.h>
@@ -23,6 +29,7 @@ namespace blt {
         using std::to_string;
         using std::stringstream;
         using std::vector;
+        using std::stack;
         using std::ifstream;
 
         /**
@@ -158,7 +165,7 @@ namespace blt {
         /*
          * delete_directory
          */
-		int
+        int
         fs_delete_dir(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf)
         {
             return remove( fpath );
@@ -177,6 +184,89 @@ namespace blt {
             }
         }
 
+        string
+        hash_string(string contents)
+        {
+            unsigned char hash[SHA256_DIGEST_LENGTH];
+            SHA256_CTX sha256;
+            SHA256_Init(&sha256);
+            SHA256_Update(&sha256, contents.c_str(), contents.size());
+            SHA256_Final(hash, &sha256);
+            stringstream ss;
+            for (int i = 0; i < SHA256_DIGEST_LENGTH; i++)
+            {
+                ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+            }
+            return ss.str();
+        }
+
+        string
+        hash_file(string filename)
+        {
+            struct stat fileInfo;
+
+            if (stat(filename.c_str(), &fileInfo))
+            {
+                throw string(strerror(errno));
+            }
+
+            if(!S_ISDIR(fileInfo.st_mode))
+            {
+                // Hash it twice, same as BLT windows
+                // This means you always get the same result, be it
+                // a single file or a file in a directory.
+                return hash_string(hash_string(read_file(filename)));
+            }
+
+            if(filename.back() == '/')
+                filename.erase(filename.length() - 1);
+
+            stack<string> todo;
+            vector<string> files;
+            todo.push(filename);
+
+            DIR *dp;
+            struct dirent *ep;
+
+            while(!todo.empty())
+            {
+                string base = todo.top();
+                dp = opendir(base.c_str());
+                todo.pop();
+
+                if (dp == NULL)
+                    throw "Couldn't open the directory";
+
+                while ((ep = readdir (dp)))
+                {
+                    string fname = ep->d_name;
+                    if(fname == "." || fname == "..") continue;
+
+                    string name = base + "/" + fname;
+
+                    if(ep->d_type == DT_DIR)
+                        todo.push(name);
+                    else if(ep->d_type == DT_REG)
+                        files.push_back(name);
+                }
+                closedir (dp);
+            }
+
+            std::sort(files.begin(), files.end());
+            string result;
+
+            for(string & file : files)
+            {
+                result += hash_string(read_file(file));
+            }
+
+            result = hash_string(result);
+
+            return result;
+        }
+
     }
 }
+
+/* vim: set ts=4 softtabstop=0 sw=4 expandtab: */
 
