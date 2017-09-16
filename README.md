@@ -9,7 +9,7 @@ Credits
 =======
 
 * [Roman Hargrave](https://github.com/RomanHargrave) - Initial work, code, translations from BLT4WIN
-* [Campbell Suter](https://github.com/ZNixian) - BLT2 updates, new installer, and maintenance
+* [Campbell Suter](https://github.com/ZNixian) - BLT2 updates, and maintenance
 * [Leonard König](https://github.com/LeonardKoenig) - C++ cleanup, linker work
 * [Ozymandias117](https://github.com/Ozymandias117) - Fixed subhook on 64-bit platforms
 * [James Wilkinson](https://github.com/JamesWilko) - BLT LUA (and BLT)
