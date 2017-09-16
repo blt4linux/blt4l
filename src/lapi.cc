@@ -32,7 +32,7 @@ namespace blt {
             int args = lua_gettop(state);
             int result = lua_pcall(state, args - 1, -1, 0);
 
-            if (result == LUAErrRun) 
+            if (result == LUAErrRun)
             {
                 size_t unused;
                 log::log(lua_tolstring(state, -1, &unused), log::LOG_ERROR);
@@ -100,7 +100,7 @@ namespace blt {
             return os_get_dir_content_impl(state, true);
         }
 
-        int 
+        int
         getfiles(lua_state* state)
         {
             return os_get_dir_content_impl(state, false);
@@ -146,6 +146,7 @@ namespace blt {
 
             bool result = (rename(from, to) == 0);
             lua_pushboolean(state, result);
+
             if(!result)
             {
                 const char* err = strerror(errno);
@@ -172,13 +173,15 @@ namespace blt {
 
             string path(path_c, len);
 
-            try {
+            try
+            {
                 string hash = fs::hash_file(path);
 
                 lua_pushlstring(state, hash.c_str(), hash.length());
                 return 1;
             }
-            catch(string e) {
+            catch(string e)
+            {
                 lua_pushboolean(state, false);
                 lua_pushlstring(state, e.c_str(), e.length());
                 return 2;
