@@ -11,7 +11,8 @@ namespace blt {
         using std::string;
 
         struct LUAHttpData {
-            int         funcRef;
+            int         funcRef
+                __attribute__((aligned(16))); // Why, Clang, Why! Using misaligned floating point ops for ints!
             int         progressRef;
             int         reqIdent;
             lua_state*  state;
