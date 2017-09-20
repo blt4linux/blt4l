@@ -38,6 +38,8 @@ set(SOURCE_FILES
     src/http.cc
     src/log.cc
     src/hook.cc
+    src/error.cc
+
     src/lapi.cc
     src/lapi_http.cc
     src/lapi_version.cc
