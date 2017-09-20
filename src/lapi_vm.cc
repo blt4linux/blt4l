@@ -129,14 +129,17 @@ static int luaB_pcall (lua_State *L) {
 }
 
 static int luaB_xpcall (lua_State *L) {
-    int status;
+    // Args: func, err, ...
     luaL_checkany(L, 2);
-    lua_settop(L, 2);
-    lua_insert(L, 1);  /* put error function under function to be called */
-    status = lua_pcall(L, 0, LUA_MULTRET, 1);
+
+    lua_pushvalue(L, 2); // Copy err to the top
+    lua_remove(L, 2); // Remove err
+    lua_insert(L, 1); // Put error function under function to be called
+
+    int status = lua_pcall(L, lua_gettop(L) - 2, LUA_MULTRET, 1);
     lua_pushboolean(L, (status == 0));
-    lua_replace(L, 1);
-    return lua_gettop(L);  /* return status + all results */
+    lua_replace(L, 1); // Overwrite the error function
+    return lua_gettop(L);  // return status, possible err + all results
 }
 
 

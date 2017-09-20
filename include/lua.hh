@@ -59,6 +59,7 @@ extern "C" {
    void         lua_pushvalue(lua_state*, int);
    int          lua_isstring(lua_state*, int);
    void         lua_replace(lua_state*, int);
+   void         lua_remove(lua_state*, int);
    int          lua_error(lua_state*);
    int          lua_type(lua_state*, int);
 
