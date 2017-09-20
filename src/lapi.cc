@@ -32,15 +32,14 @@ namespace blt {
             int args = lua_gettop(state);
             int result = lua_pcall(state, args - 1, -1, 0);
 
+            lua_pushboolean(state, result == 0);
+            lua_insert(state, 1);
+
             if (result == LUAErrRun)
             {
                 size_t unused;
                 log::log(lua_tolstring(state, -1, &unused), log::LOG_ERROR);
-                return 0;
             }
-
-            lua_pushboolean(state, result == 0);
-            lua_insert(state, 1);
 
             return lua_gettop(state);
         }
