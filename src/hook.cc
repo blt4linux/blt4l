@@ -21,6 +21,7 @@ extern "C" {
 #include <blt/http.hh>
 #include <blt/log.hh>
 #include <blt/event.hh>
+#include <blt/error.hh>
 
 #include <blt/lapi.hh>
 #include <blt/lapi_systemfs.hh>
@@ -116,13 +117,23 @@ namespace blt {
     {
         hook_remove(luaNewStateDetour);
 
-        int result = lua_pcall(state, argCount, resultCount, 0);
+        /*
+         * For lua_call, we want to give pcall a custom error handler.
+         * This gets run before the stack is unwound, so it can print out
+         * a stack trace.
+         */
 
-        if (result != 0)
-        {
-            size_t len;
-            log::log("lua_call: error in lua_pcall: " + string(lua_tolstring(state, -1, &len)), log::LOG_ERROR);
-        }
+        const int target = 1; // Push our handler to the start of the stack
+
+        // Get the value onto the stack, as pcall can't accept indexes
+        lua_rawgeti(state, LUARegistryIndex, error::check_callback(state));
+        lua_insert(state, target);
+
+        // Run the function, and any errors are handled for us.
+        lua_pcall(state, argCount, resultCount, target);
+
+        // Done with our error handler
+        lua_remove(state, target);
     }
 
     void*

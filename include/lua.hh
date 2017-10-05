@@ -10,6 +10,7 @@ static int const LUAErrSyntax       = 3;
 static int const LUAErrMem          = 4;
 static int const LUAErrErr          = 5;
 static int const LUAErrFile         = 6;
+static int const LUAIdSize          = 60;
 
 class lua_state;
 typedef const char* (*lua_reader) (lua_state*, void*, size_t*);
@@ -19,6 +20,19 @@ typedef struct {
   const char* name;
   lua_cfunction func;
 } luaL_Reg;
+
+typedef struct lua_debug {
+   int event;
+   const char *name;           /* (n) */
+   const char *namewhat;       /* (n) */
+   const char *what;           /* (S) */
+   const char *source;         /* (S) */
+   int currentline;            /* (l) */
+   int nups;                   /* (u) number of upvalues */
+   int linedefined;            /* (S) */
+   int lastlinedefined;        /* (S) */
+   char short_src[LUAIdSize]; /* (S) */
+} lua_Debug;
 
 extern "C" {
    void         lua_call(lua_state*, int, int);
@@ -63,5 +77,10 @@ extern "C" {
    int          lua_error(lua_state*);
    int          lua_type(lua_state*, int);
 
+   int          lua_getinfo(lua_state*, const char*, lua_debug*);
+   int          lua_getstack(lua_state*, int, lua_debug*);
+
 }
+
+/* vim: set ts=3 softtabstop=0 sw=3 expandtab: */
 

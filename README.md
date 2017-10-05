@@ -70,3 +70,44 @@ Run Payday2 with libblt_loader.so (It will crash, and SELinux will log the error
 $ sudo ausearch -c 'payday2_release' --raw | audit2allow -M my-payday2-hook
 $ sudo semodule -i my-payday-hook.pp
 ```
+
+Lua & Developer Information
+===========================
+
+##### Errors
+
+By default, any Lua error (outside of a pcall block) will immediately crash the game, and
+generate a error.txt file (found in mods/logs) containing the backtrace.
+
+In some situations, it might be useful to continue the game running despite the errors. In that
+case, set the `BLT_CRASH` environment variable to `CONTINUE`. This can be done by
+prepending `BLT_CRASH=CONTINUE` to the game launch arguments in Steam.
+
+##### Lua API
+
+BLT4L contains some additional Lua functions not present in windows PAYDAY.
+
+The first set of these are in the `vm` table, and are functions copied from Lua 5.1
+that are missing or have different behaviour in PAYDAY:
+
+* `vm.dofile`
+* `vm.loadfile`
+* `vm.load`
+* `vm.loadstring` (`loadstring` seems to be present in current versions, however)
+* `vm.pcall`
+* `vm.xpcall`
+
+The Linux version of PAYDAY is also missing a couple of key Lua APIs that are commonly used
+by mods.
+
+The first thing here is the `SystemFS` API. Many mods rely on this to save and load files. While
+BLT4L has added in some of these functions, it is very hard to determine the return types of some
+functions. Mods should use the Lua `io` table wherever possible.
+
+Many of the `DB` functions are missing - in particular, `DB:create_entry` is missing, which is
+how mods usually load custom assets (models, textures, etc) into the game. Work is (slowly) being done
+to reverse-engineer and reimplement this by @RomanHargrave and @ZNixian, however due to the difficulty of
+this task this will probably take a long time. As a result of this, custom heist/weapon/mask mods will
+not work (anything that goes into `mod_overrides` will still work, however).
+
+If you find any other Lua functions that are missing in BLT4L, please open an issue.
