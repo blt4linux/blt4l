@@ -15,14 +15,16 @@ namespace blt {
         std::map<lua_state*, int> refs;
 
         // Based off the debug.traceback function
-        static void traceback (lua_state *L, void (print)(string)) {
+        static void traceback (lua_state *L, void (print)(string))
+        {
             lua_Debug ar;
 
             int level = 1;
 
             print("stack traceback:");
             std::stringstream buff;
-            while (lua_getstack(L, level++, &ar)) {
+            while (lua_getstack(L, level++, &ar))
+            {
                 buff << "\t";
 
                 lua_getinfo(L, "Snl", &ar);
@@ -33,7 +35,8 @@ namespace blt {
 
                 if (*ar.namewhat != '\0')  /* is there a name? */
                     buff << " in function '" << ar.name << "'";
-                else {
+                else
+                {
                     if (*ar.what == 'm')  /* main? */
                         buff << " in main chunk";
                     else if (*ar.what == 'C' || *ar.what == 't')
@@ -47,16 +50,19 @@ namespace blt {
             }
         }
 
-        static void errlog(string str) {
+        static void errlog(string str)
+        {
             log::log(str, log::LOG_ERROR);
         }
 
         std::ofstream* crashstream;
-        static void crashlog(string str) {
+        static void crashlog(string str)
+        {
             *crashstream << str << endl;
         }
 
-        static int error(lua_state* L) {
+        static int error(lua_state* L)
+        {
             size_t len;
 
             const char* crash_mode = getenv("BLT_CRASH");
@@ -80,7 +86,8 @@ namespace blt {
         }
 
 
-        int check_callback(lua_state* state) {
+        int check_callback(lua_state* state)
+        {
             if(refs.count(state))
                 return refs[state];
 
