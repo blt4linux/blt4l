@@ -23,7 +23,8 @@ namespace blt {
     // LAPI stuff
 
     namespace lapi { namespace assets {
-        int create_entry(lua_state *L) {
+        int create_entry(lua_state *L)
+        {
             uint64_t extension = *(uint64_t*) lua_touserdata(L, 2);
             uint64_t name = *(uint64_t*) lua_touserdata(L, 3);
             hash_t hash(name, extension);
@@ -32,7 +33,8 @@ namespace blt {
             const char *filename_c = luaL_checklstring(L, 4, &len);
             string filename(filename_c, len);
 
-            if(custom_assets.count(hash)) {
+            if(custom_assets.count(hash))
+            {
                 // Appears this is actually allowed in the basegame
                 // char buff[1024];
                 // snprintf(buff, 1024, "File already exists in replacement DB! %lx.%lx (%s)", name, extension, filename.c_str());
@@ -86,9 +88,11 @@ EACH_HOOK(HOOK_VARS)
     // A generic hook function
     // This can be used with all four of the template values, and it passes everything through to the supplied original function if nothing has changed.
     static void*
-    dt_dsl_db_try_open_hook(Archive *target, DB* db, idstring *ext, idstring *name, void* misc_object, Transport* transport, try_open_t original, do_resolve_t resolve) {
+    dt_dsl_db_try_open_hook(Archive *target, DB* db, idstring *ext, idstring *name, void* misc_object, Transport* transport, try_open_t original, do_resolve_t resolve)
+    {
         hash_t hash(*name, *ext);
-        if(custom_assets.count(hash)) {
+        if(custom_assets.count(hash))
+        {
             string str = custom_assets[hash];
             dsl_fss_open(target, &db->stack, &str);
             return target;
@@ -128,7 +132,8 @@ EACH_HOOK(HOOK_VARS)
 // These just call the hook function above, passing in the correct function values
 #define HOOK_TRY_OPEN(id) \
     static void* \
-    dt_dsl_db_try_open_hook_ ## id(Archive *target, DB* db, idstring* ext, idstring* name, void* misc_object, Transport* transport) { \
+    dt_dsl_db_try_open_hook_ ## id(Archive *target, DB* db, idstring* ext, idstring* name, void* misc_object, Transport* transport) \
+    { \
         hook_remove(dslDbTryOpenDetour ## id); \
         return dt_dsl_db_try_open_hook(target, db, ext, name, misc_object, transport, dsl_db_try_open_ ## id, dsl_db_do_resolve_ ## id); \
     }
