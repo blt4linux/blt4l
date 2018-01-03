@@ -39,9 +39,9 @@ extern "C" {
    int          lua_pcall(lua_state*, int, int, int);
    int          lua_gettop(lua_state*);
    void         lua_settop(lua_state*, int);
-   const char*  lua_tolstring(lua_state*, int, size_t*);
    int          luaL_loadfile(lua_state*, const char*);
    int          lua_load(lua_state*, lua_reader, void*, const char*);
+   void         lua_getfield(lua_state*, int, const char*);
    void         lua_setfield(lua_state*, int, const char*);
    void         lua_createtable(lua_state*, int, int);
    void         lua_insert(lua_state*, int);
@@ -60,6 +60,9 @@ extern "C" {
    void         lua_pushboolean(lua_state*, bool);
    void         lua_pushcclosure(lua_state*, lua_cfunction, int);
    void         lua_pushlstring(lua_state*, const char*, size_t);
+
+   const char*  lua_tolstring(lua_state*, int, size_t*);
+   void*        lua_touserdata(lua_state*, int);
 
    const char*  luaL_checklstring(lua_state*, int, size_t*);
    const char*  luaL_optlstring(lua_state*, int, const char*, size_t*);

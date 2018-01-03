@@ -22,6 +22,7 @@ extern "C" {
 #include <blt/log.hh>
 #include <blt/event.hh>
 #include <blt/error.hh>
+#include <blt/assets.hh>
 
 #include <blt/lapi.hh>
 #include <blt/lapi_systemfs.hh>
@@ -360,6 +361,8 @@ namespace blt {
         }
 
 #       undef setcall
+
+        init_asset_hook(dlHandle);
     }
 
 }
