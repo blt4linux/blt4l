@@ -13,11 +13,12 @@
 #define hook_remove(hookName) SubHook::ScopedRemove _sh_remove_raii(&hookName)
 
 using namespace std;
+using namespace dsl;
 
 namespace blt {
 
-    typedef pair<dsl::idstring, dsl::idstring> hash_t;
-    std::map<std::pair<dsl::idstring, dsl::idstring>, std::string> custom_assets;
+    typedef pair<idstring, idstring> hash_t;
+    std::map<std::pair<idstring, idstring>, std::string> custom_assets;
 
     // LAPI stuff
 
@@ -57,32 +58,29 @@ namespace blt {
 
     // The acual function hooks
 
+#define EACH_HOOK(func) \
+func(1); \
+func(2); \
+func(3); \
+func(4);
+
     SubHook dslDbAddMembers; // We need this to add the entries, as we need to do it after the DB table is set up
 
-    SubHook dslDbTryOpenDetour;
-    SubHook dslDbTryOpenDetour2;
-
     void (*dsl_db_add_members)   (lua_state*);
+    void (*dsl_fss_open) (Archive *output, FileSystemStack **_this, std::string const*);
 
-    void* (*dsl_db_try_open)   (void* /* this */, void* name, void* ext, void* target, void* transport, void* z);
-    void* (*dsl_db_try_open_2)   (void* /* this */, void* name, void* ext, void* target, void* transport, void* z);
+    typedef void* (*try_open_t) (Archive *target, DB *db, idstring *ext, idstring *name, void *misc, Transport *transport);
+    typedef void* (*do_resolve_t) (DB *_this, idstring*, idstring*, void *abc, void *def);
 
-    int (*dsl_db_do_resolve_1) (dsl::DB *_this, dsl::idstring*, dsl::idstring*, void *abc, void *def);
-    void (*dsl_fss_open) (dsl::Archive *output, dsl::FileSystemStack **_this, std::string const*);
+#define HOOK_VARS(id) \
+    try_open_t dsl_db_try_open_ ## id = NULL; \
+    do_resolve_t dsl_db_do_resolve_ ## id = NULL; \
+    SubHook dslDbTryOpenDetour ## id;
 
-    static void*
-    dt_dsl_db_try_open(void* _this, void* name, void* ext, void* target, void* transport, void* z) {
-        hook_remove(dslDbTryOpenDetour);
-
-        //printf("Hello, World: %ld %lx.%lx %ld\n", *((uint64_t*) name), *((uint64_t*) target), *((uint64_t*) ext), sizeof(std::string));
-
-        return dsl_db_try_open(_this, name, ext, target, transport, z);
-    }
+EACH_HOOK(HOOK_VARS)
 
     static void*
-    dt_dsl_db_try_open_2(dsl::Archive *target, dsl::DB* db, dsl::idstring* ext, dsl::idstring* name, void* misc_object, dsl::Transport* transport) {
-        hook_remove(dslDbTryOpenDetour2);
-
+    dt_dsl_db_try_open_hook(Archive *target, DB* db, idstring *ext, idstring *name, void* misc_object, Transport* transport, try_open_t original, do_resolve_t resolve) {
         hash_t hash(*name, *ext);
         if(custom_assets.count(hash)) {
             string str = custom_assets[hash];
@@ -90,10 +88,10 @@ namespace blt {
             return target;
         }
 
-        return dsl_db_try_open_2(target, db, ext, name, misc_object, transport);
+        return original(target, db, ext, name, misc_object, transport);
 
         /* // Code for doing the same thing as the original function (minus mod_override support):
-        int result = dsl_db_do_resolve_1(
+        int result = resolve(
             db,
             ext,
             name,
@@ -104,7 +102,7 @@ namespace blt {
         if ( result < 0 )
         {
             // Couldn't find the asset
-            *target = dsl::Archive("", 0LL, 0LL, 0LL, 1, 0LL);
+            *target = Archive("", 0LL, 0LL, 0LL, 1, 0LL);
         }
         else
         {
@@ -120,6 +118,15 @@ namespace blt {
         */
     }
 
+#define HOOK_TRY_OPEN(id) \
+    static void* \
+    dt_dsl_db_try_open_hook_ ## id(Archive *target, DB* db, idstring* ext, idstring* name, void* misc_object, Transport* transport) { \
+        hook_remove(dslDbTryOpenDetour ## id); \
+        return dt_dsl_db_try_open_hook(target, db, ext, name, misc_object, transport, dsl_db_try_open_ ## id, dsl_db_do_resolve_ ## id); \
+    }
+
+EACH_HOOK(HOOK_TRY_OPEN)
+
     static void dt_dsl_db_add_members(lua_state *L)
     {
         hook_remove(dslDbAddMembers);
@@ -131,19 +138,27 @@ namespace blt {
 
     void init_asset_hook(void *dlHandle)
     {
-#define setcall(symbol,ptr) *(void**) (&ptr) = dlsym(dlHandle, #symbol); 
-        setcall(_ZN3dsl6MainDB11add_membersEP9lua_State, dsl_db_add_members);
+#define setcall(ptr, symbol) *(void**) (&ptr) = dlsym(dlHandle, #symbol); 
+        setcall(dsl_db_add_members, _ZN3dsl6MainDB11add_membersEP9lua_State);
 
-        setcall(_ZN3dsl2DB8try_openINS_16LanguageResolverEEENS_7ArchiveENS_8idstringES4_RKT_RKNS_9TransportE, dsl_db_try_open);
-        setcall(_ZN3dsl2DB8try_openIFiRKNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessIS4_EENS_9AllocatorEEEiiEEENS_7ArchiveENS_8idstringESE_RKT_RKNS_9TransportE, dsl_db_try_open_2);
+        setcall(dsl_db_try_open_1, _ZN3dsl2DB8try_openIFiRKNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessIS4_EENS_9AllocatorEEEiiEEENS_7ArchiveENS_8idstringESE_RKT_RKNS_9TransportE);
+        setcall(dsl_db_try_open_2, _ZN3dsl2DB8try_openIN5sound15EnglishResolverEEENS_7ArchiveENS_8idstringES5_RKT_RKNS_9TransportE);
+        setcall(dsl_db_try_open_3, _ZN3dsl2DB8try_openINS_16LanguageResolverEEENS_7ArchiveENS_8idstringES4_RKT_RKNS_9TransportE);
+        setcall(dsl_db_try_open_4, _ZN3dsl2DB8try_openINS_21PropertyMatchResolverEEENS_7ArchiveENS_8idstringES4_RKT_RKNS_9TransportE);
 
-        setcall(_ZNK3dsl2DB10do_resolveIFiRKNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessIS4_EENS_9AllocatorEEEiiEEEiNS_8idstringESD_RKT_PS9_, dsl_db_do_resolve_1);
-        setcall(_ZNK3dsl15FileSystemStack4openERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE, dsl_fss_open);
+        setcall(dsl_db_do_resolve_1, _ZNK3dsl2DB10do_resolveIFiRKNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessIS4_EENS_9AllocatorEEEiiEEEiNS_8idstringESD_RKT_PS9_);
+        setcall(dsl_db_do_resolve_2, _ZNK3dsl2DB10do_resolveIN5sound15EnglishResolverEEEiNS_8idstringES4_RKT_PNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessISA_EENS_9AllocatorEEE);
+        setcall(dsl_db_do_resolve_3, _ZNK3dsl2DB10do_resolveINS_16LanguageResolverEEEiNS_8idstringES3_RKT_PNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessIS9_EENS_9AllocatorEEE);
+        setcall(dsl_db_do_resolve_4, _ZNK3dsl2DB10do_resolveINS_21PropertyMatchResolverEEEiNS_8idstringES3_RKT_PNS_7SortMapINS_5DBExt3KeyEjNSt3__14lessIS9_EENS_9AllocatorEEE);
+
+        setcall(dsl_fss_open, _ZNK3dsl15FileSystemStack4openERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE);
 #undef setcall
 
         dslDbAddMembers.Install((void*) dsl_db_add_members, (void*) dt_dsl_db_add_members);
-        dslDbTryOpenDetour.Install((void*) dsl_db_try_open, (void*) dt_dsl_db_try_open);
-        dslDbTryOpenDetour2.Install((void*) dsl_db_try_open_2, (void*) dt_dsl_db_try_open_2);
+
+#define INSTALL_TRY_OPEN_HOOK(id) \
+        dslDbTryOpenDetour ## id.Install((void*) dsl_db_try_open_ ## id, (void*) dt_dsl_db_try_open_hook_ ## id);
+        EACH_HOOK(INSTALL_TRY_OPEN_HOOK)
 
     }
 };
