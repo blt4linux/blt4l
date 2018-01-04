@@ -17,17 +17,17 @@ using namespace dsl;
 
 namespace blt {
 
-    typedef pair<idstring, idstring> hash_t;
-    static std::map<std::pair<idstring, idstring>, std::string> custom_assets;
+    typedef pair<idstring_t, idstring_t> hash_t;
+    static std::map<hash_t, std::string> custom_assets;
 
     // LAPI stuff
 
     namespace lapi { namespace assets {
         int create_entry(lua_state *L)
         {
-            uint64_t extension = *(uint64_t*) lua_touserdata(L, 2);
-            uint64_t name = *(uint64_t*) lua_touserdata(L, 3);
-            hash_t hash(name, extension);
+            idstring *extension = (idstring*) lua_touserdata(L, 2);
+            idstring *name = (idstring*) lua_touserdata(L, 3);
+            hash_t hash(name->value, extension->value);
 
             size_t len;
             const char *filename_c = luaL_checklstring(L, 4, &len);
@@ -90,7 +90,7 @@ EACH_HOOK(HOOK_VARS)
     static void*
     dt_dsl_db_try_open_hook(Archive *target, DB* db, idstring *ext, idstring *name, void* misc_object, Transport* transport, try_open_t original, do_resolve_t resolve)
     {
-        hash_t hash(*name, *ext);
+        hash_t hash(name->value, ext->value);
         if(custom_assets.count(hash))
         {
             string str = custom_assets[hash];

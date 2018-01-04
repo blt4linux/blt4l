@@ -5,8 +5,8 @@ namespace dsl {
 
    class Archive {
       public:
-         Archive(std::string const&, dsl::DataStore*, long long, long long, bool, long long);
-         Archive(dsl::Archive const&, long long, long long, bool, long long const&);
+         Archive(std::string const&, dsl::DataStore*, uint64_t, uint64_t, bool, uint64_t);
+         Archive(dsl::Archive const&, uint64_t, uint64_t, bool, uint64_t const&);
          Archive(dsl::Archive const&);
          ~Archive();
 
