@@ -38,16 +38,20 @@ Building & Manual Install
 * curl4-openssl (gnutls is NOT supported)
 * zlib
 * cmake
+* libc++dev
+* clang
 * a build tool chain (most distros have one preinstalled, or available in a build-essentials package)
 
 ##### Do the following:
 
 ```
+$ git clone https://github.com/blt4linux/blt4l.git
+$ cd blt4l
 $ git submodule init
 $ git submodule update
 $ mkdir build 
 $ cd build
-$ cmake .. 
+$ cmake -DUSE_LIBCXX=1 .. 
 $ make
 ```
 
