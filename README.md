@@ -40,16 +40,24 @@ Building & Manual Install
 * cmake
 * a build tool chain (most distros have one preinstalled, or available in a build-essentials package)
 
+#### If you would like to compile BLT4L with custom asset-loading functionailty, which allows you to use certain custom masks and certain Custom HUDS, then you also require these extra prerequisites:
+
+* libc++dev
+* clang (3.8+)
+
 ##### Do the following:
 
 ```
+$ git clone https://github.com/blt4linux/blt4l.git
+$ cd blt4l
 $ git submodule init
 $ git submodule update
 $ mkdir build 
 $ cd build
-$ cmake .. 
+$ cmake -DUSE_LIBCXX=1 .. 
 $ make
 ```
+Note: If you opted to not install the extra prerequisites for custom asset-loading, then you can remove the variable ```-DUSE_LIBCXX=1``` from the cmake command.
 
 You should find the hook in your build folder, named `libblt_loader.so`.
 You will need to set `LD_PRELOAD` for the PAYDAY2 process to find the
