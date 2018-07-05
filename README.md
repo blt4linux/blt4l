@@ -34,7 +34,7 @@ Building & Manual Install
 
 ##### In order to build BLT4L, you will need:
 
-* openssl 
+* openssl (libssl-dev on some ubuntu systems - 18.04 in particular)
 * curl4-openssl (gnutls is NOT supported)
 * zlib
 * cmake
