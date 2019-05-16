@@ -5,6 +5,8 @@ BLT4L is a part clean-room, part-line-by-line rewrite of BLT, the PAYDAY
 2 Better Lua injecTor, for Linux. It is compatibile with all BLT mods,
 presents the same API, and uses the same LUA base.
 
+***BLT4L is presently not maintained***, much of the work and research that was done to get BLT4L working has gone in to [SuperBLT](https://gitlab.com/znixian/payday2-superblt#gnulinux) which can run all of your BLT mods (and more!).
+
 Credits
 =======
 
